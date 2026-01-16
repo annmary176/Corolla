@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Reading Test — Corolla</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #FFFDF8;
+    text-align: center;
+    padding: 30px;
+  }
+  .card {
+    background: white;
+    max-width: 600px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 12px;
+  }
+  button {
+    padding: 8px 14px;
+    border: none;
+    background: #FF6B6B;
+    color: white;
+    border-radius: 8px;
+    cursor: pointer;
+  }
+  .timer {
+    font-weight: bold;
+    margin-left: 10px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+  <h3>Reading Test</h3>
+  <p id="passage">Loading...</p>
+
+  <button id="recordBtn">Start Recording</button>
+  <span class="timer" id="timer">00:00</span>
+</div>
+
+<script>
+/* ================= CONFIG ================= */
+
+const API_URL = "http://localhost:8001/analyze-test1";
+const NEXT_TEST_URL = "test2.html";
+
+const QUESTIONS = [
+  {
+    text: "The girl has a hat.",
+    normal_time_ms: 3000
+  },
+  {
+    text: "The bird is on the tree.",
+    normal_time_ms: 5000
+  }
+];
+
+/* ================= STATE ================= */
+
+let index = 0;
+let startTime = 0;
+let recordStartTime = null;
+let mediaRecorder;
+let audioChunks = [];
+let results = [];
+
+/* ================= UI ================= */
+
+const passageEl = document.getElementById("passage");
+const timerEl = document.getElementById("timer");
+const recordBtn = document.getElementById("recordBtn");
+
+/* ================= FUNCTIONS ================= */
+
+function showQuestion() {
+  if (index >= QUESTIONS.length) {
+    sendToAPI();
+    passageEl.innerText = "Test Completed 🎉";
+    recordBtn.disabled = true;
+    return;
+  }
+
+  passageEl.innerText = QUESTIONS[index].text;
+  recordBtn.innerText = "Start Recording";
+  startTime = performance.now();
+  recordStartTime = null;
+  timerEl.innerText = "00:00";
+}
+
+/* Timer display */
+setInterval(() => {
+  if (startTime) {
+    const sec = Math.floor((performance.now() - startTime) / 1000);
+    timerEl.innerText = "00:" + (sec < 10 ? "0" + sec : sec);
+  }
+}, 500);
+
+/* Recording logic */
+recordBtn.addEventListener("click", async () => {
+  if (!mediaRecorder || mediaRecorder.state === "inactive") {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    mediaRecorder = new MediaRecorder(stream);
+    audioChunks = [];
+
+    recordStartTime = Math.round(performance.now() - startTime);
+
+    mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+    mediaRecorder.onstop = () => saveResult();
+
+    mediaRecorder.start();
+    recordBtn.innerText = "Stop Recording";
+  } else {
+    mediaRecorder.stop();
+    recordBtn.innerText = "Start Recording";
+  }
+});
+
+/* Save per-question data */
+function saveResult() {
+  const endTime = Math.round(performance.now() - startTime);
+
+  results.push({
+    question_text: QUESTIONS[index].text,
+    correct_answer: QUESTIONS[index].text, // reference passage
+    normal_time_ms: QUESTIONS[index].normal_time_ms,
+    record_start_time_ms: recordStartTime,
+    user_time_ms: endTime,
+    audio_recorded: true
+  });
+
+  index++;
+  showQuestion();
+}
+
+/* Send data to API */
+function sendToAPI() {
+  // Calculate metrics for reading test
+  let totalWordsRead = 0;
+  let totalCorrect = 0;
+  let totalTime = 0;
+  let pronunciationErrors = 0;
+  
+  results.forEach(result => {
+    totalWordsRead += result.question_text.split(' ').length;
+    totalCorrect += result.user_time_ms;
+    totalTime += result.user_time_ms;
+    pronunciationErrors += Math.random() > 0.7 ? 1 : 0; // Simulated
+  });
+
+  const payload = {
+    user_id: "user_" + Date.now(),
+    test_id: "reading_test_1",
+    text_content: results.map(r => r.question_text).join(" "),
+    words_read: totalWordsRead,
+    total_words: totalWordsRead,
+    reading_time_ms: totalTime,
+    max_reading_time_ms: totalTime + 5000,
+    pronunciation_errors: Math.min(pronunciationErrors, 17)
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("API Response:", data);
+    // Store results in localStorage instead of showing alert
+    let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+    allResults.test1 = {
+      type: "Reading",
+      array: data.array,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('testResults', JSON.stringify(allResults));
+    window.location.href = NEXT_TEST_URL;
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    window.location.href = NEXT_TEST_URL;
+  });
+}
+
+/* Start */
+showQuestion();
+</script>
+
+</body>
+</html>

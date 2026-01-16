@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Corolla — Roadmap</title>
+
+<style>
+  body{
+    margin:0;
+    font-family:"Comic Sans MS","Noto Sans Malayalam",sans-serif;
+    background:#fffdf8;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    height:100vh;
+  }
+
+  .wrap{
+    width:90%;
+    max-width:900px;
+    text-align:center;
+  }
+
+  h2{color:#ff6b6b;margin-bottom:30px}
+
+  .road{
+    position:relative;
+    margin:40px 0;
+  }
+
+  .line{
+    height:6px;
+    background:#eee;
+    border-radius:10px;
+  }
+
+  .steps{
+    display:flex;
+    justify-content:space-between;
+    margin-top:-18px;
+  }
+
+  .step{
+    position:relative;
+    width:70px;
+    text-align:center;
+  }
+
+  .circle{
+    width:60px;
+    height:60px;
+    border-radius:50%;
+    background:#4ecdc4;
+    color:white;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-size:20px;
+    margin:auto;
+  }
+
+  .label{
+    font-size:12px;
+    margin-top:6px;
+  }
+
+  .start .circle{background:#ffd23f;color:#000}
+  .result .circle{background:#ff6b6b}
+
+  /* pointer */
+  .pointer{
+    position:absolute;
+    top:-32px;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:22px;
+    animation:bounce 1s infinite;
+  }
+
+  @keyframes bounce{
+    0%,100%{transform:translate(-50%,0)}
+    50%{transform:translate(-50%,-6px)}
+  }
+
+  button{
+    padding:10px 20px;
+    border:none;
+    border-radius:10px;
+    background:#ff6b6b;
+    color:white;
+    font-size:15px;
+    cursor:pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <h2 id="title">Your Learning Path 🌸</h2>
+
+  <div class="road">
+    <div class="line"></div>
+
+    <div class="steps">
+
+      <div class="step start" id="step-start">
+        <div class="pointer" id="ptr-start">⬇</div>
+        <div class="circle">▶</div>
+        <div class="label">Start</div>
+      </div>
+
+      <div class="step">
+        <div class="circle">1</div>
+        <div class="label">Reading</div>
+      </div>
+
+      <div class="step">
+        <div class="circle">2</div>
+        <div class="label">Math</div>
+      </div>
+
+      <div class="step">
+        <div class="circle">3</div>
+        <div class="label">Writing</div>
+      </div>
+
+      <div class="step result" id="step-result">
+        <div class="pointer" id="ptr-end">⬇</div>
+        <div class="circle">🏁</div>
+        <div class="label">Result</div>
+      </div>
+
+    </div>
+  </div>
+
+  <button id="actionBtn">Start</button>
+</div>
+
+<script>
+const mode = new URLSearchParams(location.search).get("mode") || "start";
+
+const ptrStart = document.getElementById("ptr-start");
+const ptrEnd   = document.getElementById("ptr-end");
+const btn      = document.getElementById("actionBtn");
+const title    = document.getElementById("title");
+
+if(mode === "start"){
+  ptrEnd.style.display = "none";
+  btn.textContent = "Start";
+  btn.onclick = () => location.href = "test1.html";
+}else{
+  ptrStart.style.display = "none";
+  title.textContent = "Journey Completed 🎉";
+  btn.textContent = "View Result";
+  btn.onclick = () => location.href = "results.html";
+}
+</script>
+
+</body>
+</html>

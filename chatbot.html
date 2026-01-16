@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Corolla — Welcome</title>
+
+<style>
+  body{
+    margin:0;
+    height:100vh;
+    font-family:"Comic Sans MS","Noto Sans Malayalam",sans-serif;
+    background:linear-gradient(180deg,#fff,#fbf7f2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+
+  .card{
+    width:90%;
+    max-width:520px;
+    background:white;
+    border-radius:18px;
+    padding:24px;
+    text-align:center;
+    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  }
+
+  .bot{
+    font-size:60px;
+  }
+
+  h2{
+    color:#ff6b6b;
+    margin:12px 0;
+  }
+
+  .msg{
+    font-size:15px;
+    color:#444;
+    margin-bottom:18px;
+  }
+
+  .warn{
+    background:#fff3cd;
+    border-radius:10px;
+    padding:10px;
+    font-size:13px;
+    color:#856404;
+    margin-bottom:16px;
+  }
+
+  .consent{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    font-size:13px;
+    color:#333;
+    text-align:left;
+    margin-bottom:18px;
+  }
+
+  button{
+    padding:12px 20px;
+    border:none;
+    border-radius:12px;
+    background:#4ecdc4;
+    color:white;
+    font-size:15px;
+    font-weight:bold;
+    cursor:pointer;
+  }
+
+  button:disabled{
+    background:#ccc;
+    cursor:not-allowed;
+  }
+
+  .small{
+    font-size:12px;
+    color:#777;
+    margin-top:12px;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <div class="bot">🌸</div>
+
+  <h2>Hello! I’m Corolla</h2>
+
+  <div class="msg">
+    I’m a friendly learning flower 🌼  
+    I help children play, read, write, and remember better.
+  </div>
+
+  <div class="warn">
+    🤖 Interactive Chatbot is <b>under construction</b><br>
+    For now, Corolla will guide you through simple learning activities.
+  </div>
+
+  <div class="consent">
+    <input type="checkbox" id="consent">
+    <label for="consent">
+      I am the parent / guardian and I agree to allow my child to
+      participate in learning activities and share basic performance data
+      for educational purposes only.
+    </label>
+  </div>
+
+  <button id="startBtn" disabled>
+    Start Learning Journey
+  </button>
+
+  <div class="small">
+    Safe • Child-friendly • No personal data collected
+  </div>
+
+</div>
+
+<script>
+const consent = document.getElementById("consent");
+const startBtn = document.getElementById("startBtn");
+
+consent.addEventListener("change", ()=>{
+  startBtn.disabled = !consent.checked;
+});
+
+startBtn.addEventListener("click", ()=>{
+  localStorage.setItem("corolla_consent", JSON.stringify({
+    consent:true,
+    timestamp: Date.now()
+  }));
+  window.location.href = "roadmap.html?mode=start";
+});
+</script>
+
+</body>
+</html>

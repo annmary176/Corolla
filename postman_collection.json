@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "AI Test Analysis API",
+    "description": "Complete collection for testing AI Test Analysis endpoints",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "http://localhost:8000/health",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "Test 1 - Reading Analysis",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"user_001\",\n  \"test_id\": \"reading_test_001\",\n  \"text_content\": \"The quick brown fox jumps over the lazy dog\",\n  \"words_read\": 8,\n  \"total_words\": 9,\n  \"reading_time_ms\": 5000,\n  \"max_reading_time_ms\": 10000,\n  \"pronunciation_errors\": 2\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/analyze-test1",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["analyze-test1"]
+        }
+      }
+    },
+    {
+      "name": "Test 2 - Logic Analysis",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"user_001\",\n  \"test_id\": \"logic_test_001\",\n  \"questions_attempted\": 16,\n  \"correct_answers\": 12,\n  \"total_questions\": 16,\n  \"logic_time_ms\": 8000,\n  \"max_logic_time_ms\": 15000,\n  \"logical_errors\": 4\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/analyze-test2",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["analyze-test2"]
+        }
+      }
+    },
+    {
+      "name": "Test 3 - Grammar/Writing Analysis",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"user_id\": \"user_001\",\n  \"test_id\": \"writing_test_001\",\n  \"text_written\": \"The cat is sitting on the mat\",\n  \"words_written\": 6,\n  \"total_words\": 8,\n  \"writing_time_ms\": 6000,\n  \"max_writing_time_ms\": 12000,\n  \"spelling_errors\": 1\n}"
+        },
+        "url": {
+          "raw": "http://localhost:8000/analyze-test3",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["analyze-test3"]
+        }
+      }
+    },
+    {
+      "name": "Test 4 - Speaking/Audio Analysis",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "data",
+              "value": "{\"user_id\": \"user_001\", \"test_id\": \"speaking_test_001\", \"expected_text\": \"The quick brown fox jumps over the lazy dog\", \"speaking_time_ms\": 7000, \"max_speaking_time_ms\": 15000}",
+              "type": "text"
+            },
+            {
+              "key": "audio_file",
+              "type": "file",
+              "src": "/path/to/audio.wav"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8000/analyze-test4",
+          "protocol": "http",
+          "host": ["localhost"],
+          "port": "8000",
+          "path": ["analyze-test4"]
+        }
+      }
+    }
+  ]
+}

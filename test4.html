@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Memory Test</title>
+
+<style>
+  body{
+    font-family: "Comic Sans MS", sans-serif;
+    background:#FFFDF8;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    height:100vh;
+  }
+  .options{
+    display:grid;
+    grid-template-columns:repeat(2,120px);
+    gap:14px;
+  }
+  img{
+    width:120px;
+    height:120px;
+    border-radius:12px;
+    cursor:pointer;
+  }
+  #blackout{
+    background:black;
+    width:200px;
+    height:200px;
+    display:none;
+  }
+</style>
+</head>
+
+<body>
+
+<h3 id="title">Memory Test</h3>
+<img id="mainImage" />
+<div id="blackout"></div>
+<div class="options" id="options"></div>
+
+<button id="startBtn">Start Test</button>
+
+<script>
+const API_URL = "http://localhost:8001/analyze-test4";
+const NEXT_TEST_URL = "roadmap.html?mode=end";
+
+const questions = [
+  {
+    id:1,
+    image:"apple.png",
+    options:["apple.png","ball.png","cat.png","dog.png"],
+    correct:"apple.png",
+    normalTime:4000
+  },
+  {
+    id:2,
+    image:"car.png",
+    options:["bus.png","car.png","bike.png","train.png"],
+    correct:"car.png",
+    normalTime:4000
+  },
+{
+    id: 3,
+    image: "banana.png",
+    options: [
+      "grapes.png",
+      "orange.png",
+      "banana.png",
+      "apple.png"
+    ],
+    correct: "banana.png",
+    normalTime: 4000
+  },
+  {
+    id:4,
+    image:"dog.png",
+    options:["cat.png","dog.png","hamster.png","rabbit.png"],
+    correct:"dog.png",
+    normalTime:4000
+  },
+  {
+    id: 5,
+    image: "house.png",
+    options: [
+      "hut.png",
+      "building.png",
+      "house.png",
+      "school.png"
+    ],
+    correct: "house.png",
+    normalTime: 4000
+  }
+];
+
+let current = 0;
+let startTime = 0;
+let results = [];
+let currentSequence = 0; // Track current sequence of correct answers
+let longestSequence = 0; // Track longest sequence without mistakes
+
+const mainImage = document.getElementById("mainImage");
+const optionsDiv = document.getElementById("options");
+const blackout = document.getElementById("blackout");
+const startBtn = document.getElementById("startBtn");
+
+startBtn.onclick = () => {
+  startBtn.style.display="none";
+  loadQuestion();
+};
+
+function loadQuestion(){
+  optionsDiv.innerHTML="";
+  blackout.style.display="none";
+
+  const q = questions[current];
+  mainImage.src = q.image;
+  mainImage.style.display="block";
+
+  // show image for 5 sec
+  setTimeout(()=>{
+    mainImage.style.display="none";
+    blackout.style.display="block";
+
+    // blackout for 1 sec
+    setTimeout(showOptions,1000);
+  },5000);
+}
+
+function showOptions(){
+  blackout.style.display="none";
+  startTime = performance.now();
+
+  const q = questions[current];
+  q.options.forEach(opt=>{
+    const img = document.createElement("img");
+    img.src = opt;
+    img.onclick = ()=>selectAnswer(opt);
+    optionsDiv.appendChild(img);
+  });
+}
+
+function selectAnswer(userInput){
+  const endTime = performance.now();
+  const q = questions[current];
+  const isCorrect = userInput === q.correct;
+
+  // Update sequence tracking
+  if (isCorrect) {
+    currentSequence++;
+    if (currentSequence > longestSequence) {
+      longestSequence = currentSequence;
+    }
+  } else {
+    currentSequence = 0; // Reset sequence on wrong answer
+  }
+
+  results.push({
+    questionId: q.id,
+    userInput: userInput,
+    correctAnswer: q.correct,
+    normalTime: q.normalTime,
+    userTime: Math.round(endTime - startTime),
+    isCorrect: isCorrect
+  });
+
+  current++;
+
+  if(current < questions.length){
+    loadQuestion();
+  } else {
+    submitToAPI();
+  }
+}
+
+function submitToAPI(){
+  // Calculate metrics for speaking/memory test
+  let correctCount = 0;
+  let totalTime = 0;
+  
+  results.forEach(result => {
+    if (result.userInput === result.correctAnswer) {
+      correctCount++;
+    }
+    totalTime += result.userTime;
+  });
+
+  const payload = {
+    user_id: "user_" + Date.now(),
+    test_id: "speaking_test_1",
+    expected_text: results.map(r => r.correctAnswer).join(" "),
+    speaking_time_ms: totalTime,
+    max_speaking_time_ms: totalTime + 5000,
+    longest_sequence_without_mistake: longestSequence
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("API Response:", data);
+    // Store results in localStorage instead of showing alert
+    let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+    allResults.test4 = {
+      type: "Speaking/Memory",
+      array: data.array,
+      longestSequence: longestSequence,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('testResults', JSON.stringify(allResults));
+    window.location.href = "results.html";
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    window.location.href = "results.html";
+  });
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Simple Math Test</title>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f4f7f6;
+    text-align: center;
+    padding-top: 50px;
+  }
+  .box {
+    background: white;
+    width: 320px;
+    margin: auto;
+    padding: 20px;
+    border-radius: 8px;
+  }
+  .question {
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+  input {
+    padding: 8px;
+    width: 120px;
+    text-align: center;
+  }
+  button {
+    margin-top: 10px;
+    padding: 8px 15px;
+    background: #4ecdc4;
+    border: none;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  .status {
+    margin-top: 10px;
+    font-weight: bold;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <div class="question" id="question">Loading...</div>
+  <input type="number" id="answer">
+  <br>
+  <button onclick="submitAnswer()">Submit</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script>
+/* API endpoint */
+let firstKeyTime = null;
+const API_URL = "http://localhost:8001/analyze-test2";
+const NEXT_TEST_URL = "test3.html";
+document.getElementById("answer").addEventListener("input", () => {
+  if (firstKeyTime === null) {
+    firstKeyTime = Math.round(performance.now() - startTime);
+  }
+});
+
+/* 10 fixed questions with expected (normal) time */
+const questions = [
+  { q: "2 + 3", ans: 5, normalTime: 4000 },
+  { q: "7 - 4", ans: 3, normalTime: 5000 },
+  { q: "5 + 6", ans: 11, normalTime: 5000 },
+  { q: "9 - 2", ans: 7, normalTime: 6000 },
+  { q: "3 + 8", ans: 11, normalTime: 5000 },
+  { q: "6 + 4", ans: 10, normalTime: 5000 },
+  { q: "10 - 3", ans: 7, normalTime: 6000 },
+  { q: "4 + 9", ans: 13, normalTime: 6000 },
+  { q: "8 - 5", ans: 3, normalTime: 5000 },
+  { q: "7 + 2", ans: 9, normalTime: 4000 }
+];
+
+let index = 0;
+let startTime = 0;
+let results = [];
+
+/* Show question */
+function showQuestion() {
+  if (index >= questions.length) {
+    sendToAPI();
+    document.getElementById("question").innerText = "Test Completed 🎉";
+    document.getElementById("answer").style.display = "none";
+    return;
+  }
+
+  document.getElementById("question").innerText =
+    questions[index].q + " = ?";
+
+  document.getElementById("answer").value = "";
+  document.getElementById("status").innerText = "";
+
+  startTime = performance.now();
+  firstKeyTime = null; // reset for new question
+}
+
+function submitAnswer() {
+  const userInput = document.getElementById("answer").value;
+  const timeTaken = Math.round(performance.now() - startTime);
+
+  results.push({
+    question: questions[index].q,
+    user_input: userInput === "" ? null : Number(userInput),
+    correct_answer: questions[index].ans,
+    normal_time_ms: questions[index].normalTime,
+    first_keystroke_time_ms: firstKeyTime,
+    user_time_ms: timeTaken
+  });
+
+  index++;
+  showQuestion();
+}
+
+/* Send collected data to API */
+function sendToAPI() {
+  // Calculate metrics for logic test
+  let correctCount = 0;
+  let totalTime = 0;
+  
+  results.forEach(result => {
+    if (result.user_input === result.correct_answer) {
+      correctCount++;
+    }
+    totalTime += result.user_time_ms;
+  });
+
+  const payload = {
+    user_id: "user_" + Date.now(),
+    test_id: "logic_test_1",
+    questions_attempted: results.length,
+    correct_answers: correctCount,
+    total_questions: questions.length,
+    logic_time_ms: totalTime,
+    max_logic_time_ms: totalTime + 5000,
+    logical_errors: questions.length - correctCount
+  };
+
+  fetch(API_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  })
+  .then(response => response.json())
+  .then(data => {
+    console.log("API Response:", data);
+    // Store results in localStorage instead of showing alert
+    let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+    allResults.test2 = {
+      type: "Logic",
+      array: data.array,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('testResults', JSON.stringify(allResults));
+    window.location.href = NEXT_TEST_URL;
+  })
+  .catch(error => {
+    console.error("Error:", error);
+    window.location.href = NEXT_TEST_URL;
+  });
+}
+
+/* Start test */
+showQuestion();
+</script>
+
+</body>
+</html>

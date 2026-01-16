@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Playground</title>
+
+<style>
+  body{
+    margin:0;
+    height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:"Comic Sans MS", sans-serif;
+    background:#f0fff8;
+  }
+  .box{
+    background:white;
+    padding:20px;
+    border-radius:16px;
+    box-shadow:0 8px 18px rgba(0,0,0,0.1);
+    text-align:center;
+    width:90%;
+    max-width:400px;
+  }
+  .chat{
+    background:#eaffea;
+    padding:12px;
+    border-radius:12px;
+    margin:12px 0;
+    min-height:60px;
+  }
+  button{
+    padding:10px 16px;
+    border:none;
+    border-radius:12px;
+    background:#4ecdc4;
+    color:white;
+    font-size:14px;
+    cursor:pointer;
+  }
+</style>
+</head>
+
+<body>
+
+<div class="box">
+  <h2>🌼 Well Done!</h2>
+
+  <div class="chat" id="chatBox"></div>
+
+  <button id="handoverBtn" style="display:none">
+    Give this to Parent 👩‍👧
+  </button>
+</div>
+
+<script>
+const chatBox = document.getElementById("chatBox");
+const handoverBtn = document.getElementById("handoverBtn");
+
+const messages = [
+  "Hi! You did a great job today 😊",
+  "You tried your best and that makes me proud 🌟",
+  "Now please give the phone to your parent 👩‍👧"
+];
+
+let index = 0;
+
+// simple chatbot typing effect
+function showMessage(){
+  chatBox.textContent = messages[index];
+  index++;
+
+  if(index < messages.length){
+    setTimeout(showMessage, 2000);
+  }else{
+    handoverBtn.style.display = "inline-block";
+  }
+}
+
+showMessage();
+
+// when parent takes over
+handoverBtn.onclick = () => {
+  // (optional) save result summary
+  localStorage.setItem("playground_done", "true");
+
+  // move to result page
+  window.location.href = "results.html";
+};
+</script>
+
+</body>
+</html>

@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Results - Parent Portal</title>
+    <style>
+        /* (kept same styles as before) */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .login-container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 40px; max-width: 400px; width: 100%; text-align: center; }
+        .results-container { background: white; border-radius: 12px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); padding: 40px; max-width: 900px; width: 100%; display: none; }
+        .results-container.show { display: block; }
+        h1 { color: #667eea; margin-bottom: 30px; font-size: 2em; }
+        h2 { color: #333; margin-top: 30px; margin-bottom: 15px; border-bottom: 2px solid #667eea; padding-bottom: 10px; }
+        .form-group { margin-bottom: 20px; text-align: left; }
+        label { display: block; margin-bottom: 8px; color: #333; font-weight: 600; font-size: 0.95em; }
+        input[type="password"] { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1em; transition: border-color 0.3s; }
+        input[type="password"]:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); }
+        button { width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: 600; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #764ba2; }
+        button:active { transform: scale(0.98); }
+        .error { background: #fee; color: #c33; padding: 12px; border-radius: 6px; margin-bottom: 15px; border-left: 4px solid #c33; display: none; }
+        .error.show { display: block; }
+        .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-top: 20px; }
+        .test-card { background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); }
+        .test-card h3 { color: #667eea; margin-bottom: 15px; font-size: 1.1em; }
+        .metric-row { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .metric-row:last-child { border-bottom: none; }
+        .metric-label { font-weight: 600; color: #333; }
+        .metric-value { background: #667eea; color: white; padding: 6px 12px; border-radius: 4px; font-weight: 600; font-size: 0.9em; }
+        .summary { background: #f0f7ff; padding: 20px; border-radius: 8px; margin-top: 30px; border-left: 4px solid #667eea; }
+        .summary h3 { color: #667eea; margin-bottom: 15px; }
+        .summary-stat { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #ddd; }
+        .summary-stat:last-child { border-bottom: none; }
+        .logout-btn { margin-top: 30px; background: #999; padding: 10px 20px; width: auto; }
+        .logout-btn:hover { background: #777; }
+        .timestamp { color: #999; font-size: 0.9em; margin-top: 10px; }
+        .no-results { text-align: center; padding: 40px; color: #999; }
+        @media (max-width: 768px) { .login-container, .results-container { padding: 20px; } h1 { font-size: 1.5em; } .results-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <!-- Login Section -->
+    <div class="login-container" id="loginContainer">
+        <h1>👨‍👩‍👧‍👦 Parent Portal</h1>
+        <p style="color: #666; margin-bottom: 30px;">Enter password to view test results</p>
+        
+        <div class="error" id="errorMsg"></div>
+
+        <div class="form-group">
+            <label for="password">Password:</label>
+            <input 
+                type="password" 
+                id="password" 
+                placeholder="Enter parent password"
+                onkeypress="if(event.key === 'Enter') login()"
+            >
+        </div>
+
+        <button onclick="login()">Login</button>
+
+        <div style="margin-top: 20px; color: #999; font-size: 0.9em;">
+            <p>💡 Default Password: <strong>parent123</strong></p>
+        </div>
+    </div>
+
+    <!-- Results Section -->
+    <div class="results-container" id="resultsContainer">
+        <h1>📊 Test Results</h1>
+        
+        <div id="resultsContent"></div>
+
+        <button class="logout-btn" onclick="logout()">🔓 Logout</button>
+    </div>
+
+    <script>
+        // Change this to your desired password or keep it in sync with backend configuration
+        const PARENT_PASSWORD = "parent123";
+
+        function login() {
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (!password) {
+                errorMsg.textContent = "Please enter a password";
+                errorMsg.classList.add('show');
+                return;
+            }
+
+            if (password === PARENT_PASSWORD) {
+                errorMsg.classList.remove('show');
+                sessionStorage.setItem('parentLoggedIn', 'true');
+                showResults();
+            } else {
+                errorMsg.textContent = "❌ Incorrect password. Try again.";
+                errorMsg.classList.add('show');
+            }
+        }
+
+        function formatMetricValue(val) {
+            // If metric is 0..1 treat as percentage for display
+            if (typeof val === 'number') {
+                if (val >= 0 && val <= 1) {
+                    return (val * 100).toFixed(0) + '%';
+                }
+                // Large-scale metrics (0-50 etc.) — show as numeric with up to 2 decimals
+                return Number.isInteger(val) ? val.toString() : val.toFixed(2);
+            }
+            return String(val);
+        }
+
+        function safeDateString(ts) {
+            // Accept ISO strings or numeric timestamps. Fallback to now.
+            if (!ts) return new Date().toLocaleString();
+            const d = new Date(ts);
+            if (isNaN(d.getTime())) return new Date().toLocaleString();
+            return d.toLocaleString();
+        }
+
+        function showResults() {
+            const loginContainer = document.getElementById('loginContainer');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const resultsContent = document.getElementById('resultsContent');
+
+            // Get results from localStorage
+            const testResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+
+            if (!testResults || Object.keys(testResults).length === 0) {
+                resultsContent.innerHTML = '<div class="no-results"><p>No test results available</p></div>';
+                loginContainer.style.display = 'none';
+                resultsContainer.classList.add('show');
+                return;
+            }
+
+            // Build results display
+            let html = '';
+            const metricLabels = {
+                test1: ['Accuracy', 'Reading Speed', 'Words Read', 'Pronunciation Errors'],
+                test2: ['Logic Accuracy', 'Logic Speed', 'Questions Attempted', 'Logical Errors'],
+                test3: ['Grammar Score', 'Writing Speed', 'Word Count', 'Spelling Errors'],
+                test4: ['Speaking Accuracy', 'Speaking Speed', 'Test Completion', 'Audio Quality']
+            };
+
+            // Calculate overall statistics
+            let totalTests = 0;
+            let overallScore = 0;
+            const testScores = [];
+
+            // Display individual test results
+            Object.keys(testResults).forEach(testKey => {
+                const test = testResults[testKey] || {};
+                const labels = metricLabels[testKey] || ['Metric 1', 'Metric 2', 'Metric 3', 'Metric 4'];
+                const values = Array.isArray(test.array) ? test.array : [];
+
+                // Determine display name for the test
+                const displayType = test.type || test.test_type || (testKey === 'test1' ? 'Reading' : testKey);
+
+                if (values.length > 0) {
+                    totalTests++;
+                    // Compute a per-test score: prefer first metric as accuracy if 0..1, otherwise normalize
+                    let primary = values[0];
+                    let testScore = 0;
+                    if (typeof primary === 'number') {
+                        if (primary >= 0 && primary <= 1) {
+                            testScore = primary * 100;
+                        } else {
+                            // If primary already scaled (e.g., 0-50), scale to percent
+                            // assume maximum possible primary is 50 (words metric); clamp defensively
+                            const maxPossible = primary <= 50 ? 50 : primary;
+                            testScore = Math.min(100, (primary / maxPossible) * 100);
+                        }
+                    }
+                    testScores.push(parseFloat(testScore.toFixed(1)));
+                    overallScore += parseFloat(testScore);
+
+                    html += `
+                        <div class="test-card">
+                            <h3>${displayType} Test</h3>
+                            <div class="metric-row">
+                                <span class="metric-label">${labels[0]}</span>
+                                <span class="metric-value">${formatMetricValue(values[0])}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">${labels[1]}</span>
+                                <span class="metric-value">${formatMetricValue(values[1])}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">${labels[2]}</span>
+                                <span class="metric-value">${formatMetricValue(values[2])}</span>
+                            </div>
+                            <div class="metric-row">
+                                <span class="metric-label">${labels[3]}</span>
+                                <span class="metric-value">${formatMetricValue(values[3])}</span>
+                            </div>
+                            <div class="timestamp">${safeDateString(test.timestamp)}</div>
+                    `;
+
+                    // Show optional extra fields, e.g., longestSequence
+                    if (test.longestSequence !== undefined) {
+                        html += `<div style="margin-top:8px"><strong>Longest Sequence:</strong> ${test.longestSequence}</div>`;
+                    }
+
+                    html += `</div>`;
+                }
+            });
+
+            // Add summary section
+            if (totalTests > 0) {
+                const avgScore = (overallScore / totalTests).toFixed(1);
+                html += `
+                    <div class="summary">
+                        <h3>📈 Summary</h3>
+                        <div class="summary-stat">
+                            <span>Total Tests Completed:</span>
+                            <strong>${totalTests}</strong>
+                        </div>
+                        <div class="summary-stat">
+                            <span>Average Score:</span>
+                            <strong>${avgScore}%</strong>
+                        </div>
+                        <div class="summary-stat">
+                            <span>Performance Level:</span>
+                            <strong>${getPerformanceLevel(Number(avgScore))}</strong>
+                        </div>
+                    </div>
+                `;
+            }
+
+            resultsContent.innerHTML = `<div class="results-grid">${html}</div>`;
+            loginContainer.style.display = 'none';
+            resultsContainer.classList.add('show');
+        }
+
+        function getPerformanceLevel(score) {
+            if (score >= 80) return "🌟 Excellent";
+            if (score >= 60) return "👍 Good";
+            if (score >= 40) return "📚 Average";
+            return "💪 Needs Improvement";
+        }
+
+        function logout() {
+            sessionStorage.removeItem('parentLoggedIn');
+            document.getElementById('loginContainer').style.display = 'block';
+            document.getElementById('resultsContainer').classList.remove('show');
+            document.getElementById('password').value = '';
+            document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        // Check if already logged in
+        window.addEventListener('load', () => {
+            if (sessionStorage.getItem('parentLoggedIn') === 'true') {
+                showResults();
+            }
+        });
+    </script>
+</body>
+</html>
