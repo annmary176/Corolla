@@ -6,80 +6,188 @@
 <title>Corolla — Welcome</title>
 
 <style>
-  body{
-    margin:0;
-    height:100vh;
-    font-family:"Comic Sans MS","Noto Sans Malayalam",sans-serif;
-    background:linear-gradient(180deg,#fff,#fbf7f2);
-    display:flex;
-    align-items:center;
-    justify-content:center;
+  :root {
+    --primary-purple: #8b5cf6;
+    --light-purple: #f5f3ff;
+    --accent-purple: #7c3aed;
+    --gloss-white: rgba(255, 255, 255, 0.9);
   }
 
-  .card{
-    width:90%;
-    max-width:520px;
-    background:white;
-    border-radius:18px;
-    padding:24px;
-    text-align:center;
-    box-shadow:0 10px 25px rgba(0,0,0,0.08);
+  body {
+    margin: 0;
+    height: 100vh;
+    font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at top right, #f3f0ff 0%, #e0e7ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
   }
 
-  .bot{
-    font-size:60px;
+  /* Animated background shine to match landing */
+  body::before {
+    content: '';
+    position: absolute;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+    animation: moveShine 15s linear infinite;
+    z-index: 0;
   }
 
-  h2{
-    color:#ff6b6b;
-    margin:12px 0;
+  @keyframes moveShine {
+    0% { transform: translate(-20%, -20%); }
+    50% { transform: translate(5%, 5%); }
+    100% { transform: translate(-20%, -20%); }
   }
 
-  .msg{
-    font-size:15px;
-    color:#444;
-    margin-bottom:18px;
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 520px;
+    background: var(--gloss-white);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border-radius: 32px;
+    padding: 40px;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    animation: slideUp 0.6s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .warn{
-    background:#fff3cd;
-    border-radius:10px;
-    padding:10px;
-    font-size:13px;
-    color:#856404;
-    margin-bottom:16px;
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 
-  .consent{
-    display:flex;
-    align-items:flex-start;
-    gap:10px;
-    font-size:13px;
-    color:#333;
-    text-align:left;
-    margin-bottom:18px;
+  .bot {
+    font-size: 64px;
+    margin-bottom: 10px;
+    filter: drop-shadow(0 4px 6px rgba(139, 92, 246, 0.2));
+    display: inline-block;
+    animation: floating 3s ease-in-out infinite;
   }
 
-  button{
-    padding:12px 20px;
-    border:none;
-    border-radius:12px;
-    background:#4ecdc4;
-    color:white;
-    font-size:15px;
-    font-weight:bold;
-    cursor:pointer;
+  @keyframes floating {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
   }
 
-  button:disabled{
-    background:#ccc;
-    cursor:not-allowed;
+  h2 {
+    color: var(--primary-purple);
+    margin: 0 0 15px;
+    font-size: 1.8rem;
+    font-weight: 800;
   }
 
-  .small{
-    font-size:12px;
-    color:#777;
-    margin-top:12px;
+  .msg {
+    font-size: 16px;
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-weight: 500;
+  }
+
+  .warn {
+    background: #fef3c7;
+    border-radius: 16px;
+    padding: 14px;
+    font-size: 14px;
+    color: #92400e;
+    margin-bottom: 24px;
+    border: 1px solid #fde68a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 14px;
+    color: #374151;
+    text-align: left;
+    margin-bottom: 24px;
+    padding: 15px;
+    background: rgba(139, 92, 246, 0.05);
+    border-radius: 16px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .consent:hover {
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  .consent input {
+    margin-top: 3px;
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: var(--primary-purple);
+  }
+
+  button {
+    width: 100%;
+    padding: 16px;
+    border: none;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    color: white;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(139, 92, 246, 0.3);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  button:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 20px -5px rgba(139, 92, 246, 0.4);
+    filter: brightness(1.05);
+  }
+
+  button:active:not(:disabled) {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    background: #e5e7eb;
+    color: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .small {
+    font-size: 12px;
+    color: #9ca3af;
+    margin-top: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Decorative card shine */
+  .card::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.2), transparent);
+    transform: rotate(45deg);
+    animation: shineEffect 4s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shineEffect {
+    0% { transform: translate(-100%, -100%) rotate(45deg); }
+    100% { transform: translate(100%, 100%) rotate(45deg); }
   }
 </style>
 </head>
@@ -87,38 +195,38 @@
 <body>
 
 <div class="card">
-
   <div class="bot">🌸</div>
 
   <h2>Hello! I’m Corolla</h2>
 
   <div class="msg">
-    I’m a friendly learning flower 🌼  
+    I’m a friendly learning flower 🌼<br>
     I help children play, read, write, and remember better.
   </div>
 
   <div class="warn">
-    🤖 Interactive Chatbot is <b>under construction</b><br>
-    For now, Corolla will guide you through simple learning activities.
+    <span>🚧</span>
+    <div>
+      <b>Under Construction:</b> For now, I'll guide you through simple learning activities.
+    </div>
   </div>
 
-  <div class="consent">
+  <label class="consent" for="consent">
     <input type="checkbox" id="consent">
-    <label for="consent">
+    <span>
       I am the parent / guardian and I agree to allow my child to
       participate in learning activities and share basic performance data
       for educational purposes only.
-    </label>
-  </div>
+    </span>
+  </label>
 
   <button id="startBtn" disabled>
     Start Learning Journey
   </button>
 
   <div class="small">
-    Safe • Child-friendly • No personal data collected
+    Safe • Child-friendly • Private
   </div>
-
 </div>
 
 <script>
@@ -134,7 +242,8 @@ startBtn.addEventListener("click", ()=>{
     consent:true,
     timestamp: Date.now()
   }));
-  window.location.href = "roadmap.html?mode=start";
+  // Using assignment for better compatibility in sandboxed environments
+  window.location.assign("roadmap.html?mode=start");
 });
 </script>
 

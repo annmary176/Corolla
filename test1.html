@@ -5,30 +5,129 @@
 <title>Reading Test — Corolla</title>
 
 <style>
+  /* Modern Gradient Background */
   body {
-    font-family: Arial, sans-serif;
-    background: #FFFDF8;
-    text-align: center;
-    padding: 30px;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8e0ff 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #4A4A68;
   }
+
+  /* Shiny Glassmorphism Card */
   .card {
-    background: white;
-    max-width: 600px;
-    margin: auto;
-    padding: 20px;
-    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    max-width: 500px;
+    width: 90%;
+    padding: 40px;
+    border-radius: 24px;
+    box-shadow: 0 20px 40px rgba(126, 87, 255, 0.1), 
+                0 1px 3px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    text-align: center;
+    position: relative;
+    overflow: hidden;
   }
+
+  /* Subtle "Shine" Animation Top Corner */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.4) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #6366f1;
+    margin-bottom: 25px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+  }
+
+  #passage {
+    font-size: 1.6rem;
+    font-weight: 500;
+    line-height: 1.4;
+    color: #2D2D44;
+    margin-bottom: 40px;
+    min-height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Interactive Shiny Button */
   button {
-    padding: 8px 14px;
+    padding: 14px 28px;
     border: none;
-    background: #FF6B6B;
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
     color: white;
-    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
     cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    outline: none;
   }
+
+  button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    filter: brightness(1.1);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  /* Timer Styling */
+  .timer-container {
+    margin-top: 25px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.1rem;
+    color: #8E8EAC;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
   .timer {
     font-weight: bold;
-    margin-left: 10px;
+    color: #6366f1;
+  }
+
+  /* Pulsing red dot for "Recording" state */
+  .recording-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #ff4d4d;
+    border-radius: 50%;
+    display: none;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.3; }
+    100% { opacity: 1; }
   }
 </style>
 </head>
@@ -40,14 +139,19 @@
   <p id="passage">Loading...</p>
 
   <button id="recordBtn">Start Recording</button>
-  <span class="timer" id="timer">00:00</span>
+  
+  <div class="timer-container">
+    <div id="dot" class="recording-dot"></div>
+    <span class="timer" id="timer">00:00</span>
+  </div>
 </div>
 
 <script>
-/* ================= CONFIG ================= */
+/* ================= CONFIG (SAME AS ORIGINAL) ================= */
 
 const API_URL = "http://localhost:8001/analyze-test1";
 const NEXT_TEST_URL = "test2.html";
+const RESULTS_URL = "results.html";
 
 const QUESTIONS = [
   {
@@ -60,7 +164,7 @@ const QUESTIONS = [
   }
 ];
 
-/* ================= STATE ================= */
+/* ================= STATE (SAME AS ORIGINAL) ================= */
 
 let index = 0;
 let startTime = 0;
@@ -69,19 +173,21 @@ let mediaRecorder;
 let audioChunks = [];
 let results = [];
 
-/* ================= UI ================= */
+/* ================= UI (SAME AS ORIGINAL) ================= */
 
 const passageEl = document.getElementById("passage");
 const timerEl = document.getElementById("timer");
 const recordBtn = document.getElementById("recordBtn");
+const dotEl = document.getElementById("dot"); // Added for visual effect
 
-/* ================= FUNCTIONS ================= */
+/* ================= FUNCTIONS (SAME AS ORIGINAL) ================= */
 
 function showQuestion() {
   if (index >= QUESTIONS.length) {
     sendToAPI();
     passageEl.innerText = "Test Completed 🎉";
     recordBtn.disabled = true;
+    dotEl.style.display = "none";
     return;
   }
 
@@ -114,9 +220,11 @@ recordBtn.addEventListener("click", async () => {
 
     mediaRecorder.start();
     recordBtn.innerText = "Stop Recording";
+    dotEl.style.display = "block"; // Show pulsing dot
   } else {
     mediaRecorder.stop();
     recordBtn.innerText = "Start Recording";
+    dotEl.style.display = "none"; // Hide pulsing dot
   }
 });
 
@@ -171,14 +279,16 @@ function sendToAPI() {
   .then(response => response.json())
   .then(data => {
     console.log("API Response:", data);
-    // Store results in localStorage instead of showing alert
+    // Store normalized values in localStorage
     let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
     allResults.test1 = {
       type: "Reading",
-      array: data.array,
+      array: data.array || [0, 0, 0, 0], // Normalized 4 values
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('testResults', JSON.stringify(allResults));
+    
+    // Always go to next test
     window.location.href = NEXT_TEST_URL;
   })
   .catch(error => {

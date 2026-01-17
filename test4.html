@@ -2,190 +2,362 @@
 <html lang="en">
 <head>
 <meta charset="utf-8" />
-<title>Memory Test</title>
+<title>Memory Test — Corolla</title>
 
 <style>
-  body{
-    font-family: "Comic Sans MS", sans-serif;
-    background:#FFFDF8;
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    justify-content:center;
-    height:100vh;
+  /* Modern Gradient Background */
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8e0ff 100%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    color: #4A4A68;
   }
-  .options{
-    display:grid;
-    grid-template-columns:repeat(2,120px);
-    gap:14px;
+
+  h3 {
+    font-weight: 700;
+    letter-spacing: -0.5px;
+    color: #6366f1;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    text-align: center;
   }
-  img{
-    width:120px;
-    height:120px;
-    border-radius:12px;
-    cursor:pointer;
+
+  /* Memorization Row */
+  .memo-row {
+    display: flex;
+    gap: 15px;
+    margin-bottom: 30px;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 20px;
+    border-radius: 24px;
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
   }
-  #blackout{
-    background:black;
-    width:200px;
-    height:200px;
-    display:none;
+
+  .memo-item {
+    width: 80px;
+    height: 80px;
+    background: white;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  }
+
+  .memo-item img {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+  }
+
+  /* Main Testing Card */
+  .main-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(12px);
+    width: 280px;
+    height: 280px;
+    padding: 20px;
+    border-radius: 32px;
+    box-shadow: 0 20px 40px rgba(126, 87, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 30px;
+    position: relative;
+    perspective: 1000px;
+  }
+
+  /* Flip Animation Logic */
+  .flip-inner {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
+  }
+
+  .is-flipped .flip-inner {
+    transform: rotateY(180deg);
+  }
+
+  .flip-front, .flip-back {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+  }
+
+  .flip-front {
+    background: linear-gradient(135deg, #a5b4fc 0%, #6366f1 100%);
+    color: white;
+    font-size: 3rem;
+  }
+
+  .flip-back {
+    background: white;
+    transform: rotateY(180deg);
+  }
+
+  .flip-back img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+  }
+
+  /* Choice Buttons */
+  .choices {
+    display: flex;
+    gap: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+
+  .choices.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+
+  .choice-btn {
+    padding: 16px 32px;
+    border-radius: 16px;
+    border: none;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 1rem;
+    min-width: 120px;
+  }
+
+  .btn-yes {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .btn-no {
+    background: #ef4444;
+    color: white;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+  }
+
+  .choice-btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.1);
+  }
+
+  /* Start Button */
+  #startBtn {
+    padding: 16px 40px;
+    background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+    border: none;
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    border-radius: 16px;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+  }
+
+  /* Navigation Buttons */
+  .nav-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: center;
+  }
+
+  .nav-btn {
+    padding: 12px 30px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+  }
+
+  .next-btn {
+    background: #10b981;
+    color: white;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+  }
+
+  .next-btn:hover {
+    background: #059669;
+    transform: translateY(-2px);
+  }
+
+  .skip-btn {
+    background: #6b7280;
+    color: white;
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+  }
+
+  .skip-btn:hover {
+    background: #4b5563;
+    transform: translateY(-2px);
   }
 </style>
 </head>
 
 <body>
 
-<h3 id="title">Memory Test</h3>
-<img id="mainImage" />
-<div id="blackout"></div>
-<div class="options" id="options"></div>
+<h3 id="title">Memorization Phase</h3>
+
+<!-- Phase 1: Showing images to remember -->
+<div class="memo-row" id="memoRow">
+  <!-- Filled by JS -->
+</div>
+
+<!-- Phase 2: Testing card -->
+<div class="main-card" id="testCard" style="display:none;">
+  <div class="flip-inner" id="flipInner">
+    <div class="flip-front">?</div>
+    <div class="flip-back">
+      <img id="testImage" src="" />
+    </div>
+  </div>
+</div>
+
+<div class="choices" id="choices">
+  <button class="choice-btn btn-no" onclick="handleChoice(false)">NO</button>
+  <button class="choice-btn btn-yes" onclick="handleChoice(true)">YES</button>
+</div>
 
 <button id="startBtn">Start Test</button>
 
-<script>
-const API_URL = "http://localhost:8001/analyze-test4";
-const NEXT_TEST_URL = "roadmap.html?mode=end";
+<div class="nav-buttons" id="navButtons" style="display:none;">
+  <button class="nav-btn next-btn" onclick="window.location.href='test5.html'">Next Test →</button>
+  <button class="nav-btn skip-btn" onclick="window.location.href='results.html'">Skip to Results</button>
+</div>
 
+<script>
+/* ================= CONFIG ================= */
+const API_URL = "http://localhost:8001/analyze-test4";
+const NEXT_TEST_URL = "results.html";
+const RESULTS_URL = "results.html";
+
+// The "Target Set" the user must memorize
+const TARGET_SET = ["apple.png", "car.png", "banana.png", "dog.png", "house.png"];
+
+// The questions (random images to check against target set)
 const questions = [
-  {
-    id:1,
-    image:"apple.png",
-    options:["apple.png","ball.png","cat.png","dog.png"],
-    correct:"apple.png",
-    normalTime:4000
-  },
-  {
-    id:2,
-    image:"car.png",
-    options:["bus.png","car.png","bike.png","train.png"],
-    correct:"car.png",
-    normalTime:4000
-  },
-{
-    id: 3,
-    image: "banana.png",
-    options: [
-      "grapes.png",
-      "orange.png",
-      "banana.png",
-      "apple.png"
-    ],
-    correct: "banana.png",
-    normalTime: 4000
-  },
-  {
-    id:4,
-    image:"dog.png",
-    options:["cat.png","dog.png","hamster.png","rabbit.png"],
-    correct:"dog.png",
-    normalTime:4000
-  },
-  {
-    id: 5,
-    image: "house.png",
-    options: [
-      "hut.png",
-      "building.png",
-      "house.png",
-      "school.png"
-    ],
-    correct: "house.png",
-    normalTime: 4000
-  }
+  { img: "apple.png", isCorrect: true },
+  { img: "bus.png", isCorrect: false },
+  { img: "banana.png", isCorrect: true },
+  { img: "cat.png", isCorrect: false },
+  { img: "house.png", isCorrect: true }
 ];
 
+/* ================= STATE ================= */
 let current = 0;
 let startTime = 0;
 let results = [];
-let currentSequence = 0; // Track current sequence of correct answers
-let longestSequence = 0; // Track longest sequence without mistakes
+let currentSequence = 0; 
+let longestSequence = 0; 
 
-const mainImage = document.getElementById("mainImage");
-const optionsDiv = document.getElementById("options");
-const blackout = document.getElementById("blackout");
+const titleEl = document.getElementById("title");
+const memoRow = document.getElementById("memoRow");
+const testCard = document.getElementById("testCard");
+const flipInner = document.getElementById("flipInner");
+const testImage = document.getElementById("testImage");
+const choicesEl = document.getElementById("choices");
 const startBtn = document.getElementById("startBtn");
 
-startBtn.onclick = () => {
-  startBtn.style.display="none";
-  loadQuestion();
-};
+startBtn.onclick = startMemorization;
 
-function loadQuestion(){
-  optionsDiv.innerHTML="";
-  blackout.style.display="none";
-
-  const q = questions[current];
-  mainImage.src = q.image;
-  mainImage.style.display="block";
-
-  // show image for 5 sec
-  setTimeout(()=>{
-    mainImage.style.display="none";
-    blackout.style.display="block";
-
-    // blackout for 1 sec
-    setTimeout(showOptions,1000);
-  },5000);
-}
-
-function showOptions(){
-  blackout.style.display="none";
-  startTime = performance.now();
-
-  const q = questions[current];
-  q.options.forEach(opt=>{
+function startMemorization() {
+  startBtn.style.display = "none";
+  titleEl.innerText = "Memorize these images (10 seconds)";
+  
+  // Show target set
+  TARGET_SET.forEach(src => {
+    const div = document.createElement("div");
+    div.className = "memo-item";
     const img = document.createElement("img");
-    img.src = opt;
-    img.onclick = ()=>selectAnswer(opt);
-    optionsDiv.appendChild(img);
+    img.src = src;
+    div.appendChild(img);
+    memoRow.appendChild(div);
   });
+
+  setTimeout(() => {
+    memoRow.style.display = "none";
+    startTesting();
+  }, 10000); // 10 seconds to memorize
 }
 
-function selectAnswer(userInput){
+function startTesting() {
+  testCard.style.display = "flex";
+  loadQuestion();
+}
+
+function loadQuestion() {
+  if (current >= questions.length) {
+    submitToAPI();
+    return;
+  }
+
+  titleEl.innerText = "Was this image in the original set?";
+  const q = questions[current];
+  testImage.src = q.img;
+  
+  // Reset card state
+  testCard.classList.remove("is-flipped");
+  choicesEl.classList.remove("active");
+
+  // Show card after brief pause, then flip it automatically
+  setTimeout(() => {
+    testCard.classList.add("is-flipped");
+    startTime = performance.now();
+    choicesEl.classList.add("active");
+  }, 800);
+}
+
+function handleChoice(userSaysYes) {
   const endTime = performance.now();
   const q = questions[current];
-  const isCorrect = userInput === q.correct;
+  
+  // Correct if (userSaysYes AND image was in set) OR (userSaysNo AND image wasn't in set)
+  const isCorrect = userSaysYes === q.isCorrect;
 
-  // Update sequence tracking
   if (isCorrect) {
     currentSequence++;
     if (currentSequence > longestSequence) {
       longestSequence = currentSequence;
     }
   } else {
-    currentSequence = 0; // Reset sequence on wrong answer
+    currentSequence = 0; 
   }
 
   results.push({
-    questionId: q.id,
-    userInput: userInput,
-    correctAnswer: q.correct,
-    normalTime: q.normalTime,
+    questionId: current + 1,
+    userInput: userSaysYes ? "YES" : "NO",
+    correctAnswer: q.isCorrect ? "YES" : "NO",
     userTime: Math.round(endTime - startTime),
     isCorrect: isCorrect
   });
 
   current++;
-
-  if(current < questions.length){
-    loadQuestion();
-  } else {
-    submitToAPI();
-  }
+  loadQuestion();
 }
 
-function submitToAPI(){
-  // Calculate metrics for speaking/memory test
-  let correctCount = 0;
+function submitToAPI() {
   let totalTime = 0;
-  
-  results.forEach(result => {
-    if (result.userInput === result.correctAnswer) {
-      correctCount++;
-    }
-    totalTime += result.userTime;
-  });
+  results.forEach(r => totalTime += r.userTime);
 
   const payload = {
     user_id: "user_" + Date.now(),
@@ -203,21 +375,35 @@ function submitToAPI(){
   })
   .then(response => response.json())
   .then(data => {
-    console.log("API Response:", data);
-    // Store results in localStorage instead of showing alert
     let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
     allResults.test4 = {
-      type: "Speaking/Memory",
+      type: "Memory (Recognition)",
       array: data.array,
       longestSequence: longestSequence,
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('testResults', JSON.stringify(allResults));
-    window.location.href = "results.html";
+    
+    // All tests completed - redirect to results.html
+    titleEl.innerText = "All Tests Complete! ✓";
+    testCard.style.display = "none";
+    choicesEl.classList.remove("active");
+    
+    // Redirect to results after 2 seconds
+    setTimeout(() => {
+      window.location.href = NEXT_TEST_URL;
+    }, 1500);
   })
   .catch(error => {
     console.error("Error:", error);
-    window.location.href = "results.html";
+    titleEl.innerText = "Test Complete!";
+    testCard.style.display = "none";
+    choicesEl.classList.remove("active");
+    
+    // Still redirect even on error
+    setTimeout(() => {
+      window.location.href = NEXT_TEST_URL;
+    }, 1500);
   });
 }
 </script>

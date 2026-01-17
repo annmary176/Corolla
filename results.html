@@ -35,6 +35,8 @@
         .summary-stat:last-child { border-bottom: none; }
         .logout-btn { margin-top: 30px; background: #999; padding: 10px 20px; width: auto; }
         .logout-btn:hover { background: #777; }
+        .flower-btn { background: linear-gradient(135deg, #f472b6 0%, #db2777 100%); width: 100%; margin-top: 20px; }
+        .flower-btn:hover { background: linear-gradient(135deg, #ec407a 0%, #c2185b 100%); }
         .timestamp { color: #999; font-size: 0.9em; margin-top: 10px; }
         .no-results { text-align: center; padding: 40px; color: #999; }
         @media (max-width: 768px) { .login-container, .results-container { padding: 20px; } h1 { font-size: 1.5em; } .results-grid { grid-template-columns: 1fr; } }
@@ -71,6 +73,7 @@
         
         <div id="resultsContent"></div>
 
+        <button class="flower-btn" onclick="goToFlowerDis()">🌸 View Growth Flower</button>
         <button class="logout-btn" onclick="logout()">🔓 Logout</button>
     </div>
 
@@ -245,6 +248,12 @@
             document.getElementById('resultsContainer').classList.remove('show');
             document.getElementById('password').value = '';
             document.getElementById('errorMsg').classList.remove('show');
+        }
+
+        function goToFlowerDis() {
+            const testResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+            localStorage.setItem('flowerData', JSON.stringify(testResults));
+            window.location.href = 'flower_dis.html';
         }
 
         // Check if already logged in

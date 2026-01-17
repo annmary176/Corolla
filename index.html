@@ -3,25 +3,186 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Corolla — Landing</title>
+<title>Corolla — Growing Potential</title>
 <style>
-  body{font-family:Arial, sans-serif;margin:0;height:100vh;display:flex;align-items:center;justify-content:center;background:#f7fbf9}
-  .card{width:92%;max-width:720px;background:#fff;padding:28px;border-radius:10px;box-shadow:0 8px 20px rgba(0,0,0,.06);text-align:center}
-  h1{color:#ff6b6b;margin:0 0 6px}
-  p{color:#555;margin:0 0 18px}
-  small{color:#888}
+  :root {
+    --primary-purple: #8b5cf6;
+    --light-purple: #ede9fe;
+    --gloss-white: rgba(255, 255, 255, 0.85);
+  }
+
+  body {
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at top left, #f3f0ff 0%, #e0e7ff 100%);
+    overflow: hidden;
+  }
+
+  /* Animated background shine */
+  body::before {
+    content: '';
+    position: absolute;
+    width: 150%;
+    height: 150%;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+    animation: moveShine 10s linear infinite;
+    z-index: 0;
+  }
+
+  @keyframes moveShine {
+    0% { transform: translate(-25%, -25%); }
+    50% { transform: translate(10%, 10%); }
+    100% { transform: translate(-25%, -25%); }
+  }
+
+  .card {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 480px;
+    background: var(--gloss-white);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 60px 40px;
+    border-radius: 40px;
+    box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    text-align: center;
+    animation: fadeInScale 0.8s ease-out forwards;
+  }
+
+  @keyframes fadeInScale {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* Shiny Flower Container */
+  .flower-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    display: inline-block;
+    position: relative;
+    animation: floating 3s ease-in-out infinite;
+  }
+
+  .flower-icon::after {
+    content: '🌸';
+    position: absolute;
+    top: 0; left: 0;
+    filter: blur(15px);
+    opacity: 0.6;
+    z-index: -1;
+  }
+
+  @keyframes floating {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-10px) rotate(5deg); }
+  }
+
+  h1 {
+    color: var(--primary-purple);
+    margin: 0 0 10px;
+    font-size: 2.5rem;
+    letter-spacing: -1px;
+    font-weight: 800;
+    text-shadow: 0 2px 4px rgba(139, 92, 246, 0.1);
+  }
+
+  p {
+    color: #4b5563;
+    margin: 0 0 30px;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    font-weight: 500;
+  }
+
+  .loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+
+  /* Glossy Loading Bar */
+  .progress-bar {
+    width: 200px;
+    height: 6px;
+    background: var(--light-purple);
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .progress-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #a78bfa, #8b5cf6);
+    box-shadow: 0 0 10px rgba(139, 92, 246, 0.5);
+    border-radius: 10px;
+    animation: grow 4s linear forwards;
+  }
+
+  @keyframes grow {
+    to { width: 100%; }
+  }
+
+  small {
+    color: #9ca3af;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    font-weight: 600;
+  }
+
+  /* Decorative light strain on the card */
+  .card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255,255,255,0.3), transparent);
+    transform: rotate(45deg);
+    animation: shineStrain 3s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes shineStrain {
+    0% { top: -100%; left: -100%; }
+    100% { top: 100%; left: 100%; }
+  }
 </style>
 </head>
 <body>
   <div class="card">
-    <h1>COROLLA 🌸</h1>
+    <div class="flower-icon">🌸</div>
+    <h1>COROLLA</h1>
     <p>Help your learning flower grow!</p>
-    <p><small>Redirecting to consent screen…</small></p>
+    
+    <div class="loader-container">
+      <div class="progress-bar">
+        <div class="progress-fill"></div>
+      </div>
+      <small>Redirecting to profile setup…</small>
+    </div>
   </div>
 
 <script>
-  // Auto-redirect after 4 seconds to chatbot (consent/profile)
-  setTimeout(()=> location.href = 'chatbot.html', 4000);
+  // Robust redirection logic to handle environment-specific pathing
+  setTimeout(() => {
+    try {
+      // Attempt standard relative navigation
+      window.location.assign('chatbot.html');
+    } catch (e) {
+      // Fallback if direct assignment fails in restricted sandboxes
+      window.location.href = './chatbot.html';
+    }
+  }, 4000);
 </script>
 </body>
 </html>

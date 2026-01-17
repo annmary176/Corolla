@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Listening Test - Flower AI</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #f0f8f5; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; border-radius: 15px; padding: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        h1 { color: #2e7d32; margin-bottom: 10px; text-align: center; }
+        .instruction { text-align: center; color: #555; margin-bottom: 30px; font-size: 16px; }
+        .question-block { margin-bottom: 40px; padding: 20px; background: #f9f9f9; border-radius: 10px; border-left: 5px solid #4caf50; }
+        .question-title { font-size: 18px; font-weight: bold; color: #2e7d32; margin-bottom: 15px; }
+        .audio-section { text-align: center; margin-bottom: 20px; }
+        .play-btn { 
+            background: #4caf50; 
+            color: white; 
+            border: none; 
+            padding: 12px 30px; 
+            font-size: 16px; 
+            border-radius: 25px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            margin-bottom: 10px;
+        }
+        .play-btn:hover { background: #45a049; transform: scale(1.05); }
+        .play-btn:active { transform: scale(0.98); }
+        .audio-info { color: #777; font-size: 14px; margin-top: 5px; }
+        .options { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 20px; }
+        .option { 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            padding: 15px; 
+            border: 2px solid #ddd; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+            background: white;
+        }
+        .option:hover { border-color: #4caf50; background: #f0f8f5; }
+        .option.selected { border-color: #4caf50; background: #e8f5e9; font-weight: bold; }
+        .option img { width: 80px; height: 80px; margin-bottom: 10px; }
+        .option-label { text-align: center; font-weight: bold; color: #333; }
+        .submit-btn { 
+            width: 100%; 
+            padding: 15px; 
+            background: #4caf50; 
+            color: white; 
+            border: none; 
+            font-size: 18px; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+        .submit-btn:hover { background: #45a049; }
+        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .results { margin-top: 40px; padding: 20px; background: #e8f5e9; border-radius: 10px; display: none; }
+        .results.show { display: block; }
+        .result-title { font-size: 20px; font-weight: bold; color: #2e7d32; margin-bottom: 15px; }
+        .result-item { padding: 10px; margin-bottom: 10px; background: white; border-radius: 5px; }
+        .result-correct { color: #2e7d32; font-weight: bold; }
+        .result-incorrect { color: #d32f2f; font-weight: bold; }
+        .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px; }
+        .stat-box { background: white; padding: 15px; border-radius: 5px; text-align: center; }
+        .stat-value { font-size: 24px; font-weight: bold; color: #2e7d32; }
+        .stat-label { color: #777; font-size: 14px; }
+        .nav-buttons { display: none; margin-top: 30px; gap: 15px; }
+        .nav-buttons.show { display: flex; justify-content: center; }
+        .nav-btn { padding: 12px 30px; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.3s; font-size: 1rem; }
+        .results-btn { background: #2e7d32; color: white; }
+        .results-btn:hover { background: #1b5e20; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎧 Listening Test</h1>
+        <p class="instruction">Listen to the word played twice, then select the matching picture</p>
+        
+        <form id="testForm">
+            <!-- Question 1 -->
+            <div class="question-block">
+                <div class="question-title">Question 1</div>
+                <div class="audio-section">
+                    <button type="button" class="play-btn" onclick="playAudio('flower')">🔊 Listen</button>
+                    <div class="audio-info">Tap to hear the word twice</div>
+                </div>
+                <div class="options">
+                    <div class="option" onclick="selectAnswer(this, 'q1', 'flower')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='40' r='15' fill='%23ff69b4'/%3E%3Crect x='45' y='50' width='10' height='30' fill='%23228b22'/%3E%3Ccircle cx='40' cy='35' r='5' fill='%23ffc0cb'/%3E%3Ccircle cx='60' cy='35' r='5' fill='%23ffc0cb'/%3E%3C/svg%3E" alt="flower">
+                        <div class="option-label">Flower</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q1', 'tree')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='45' y='60' width='10' height='30' fill='%238b4513'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23228b22'/%3E%3C/svg%3E" alt="tree">
+                        <div class="option-label">Tree</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q1', 'sun')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='20' fill='%23ffff00'/%3E%3Cline x1='50' y1='10' x2='50' y2='20' stroke='%23ffff00' stroke-width='3'/%3E%3Cline x1='50' y1='80' x2='50' y2='90' stroke='%23ffff00' stroke-width='3'/%3E%3Cline x1='20' y1='50' x2='10' y2='50' stroke='%23ffff00' stroke-width='3'/%3E%3Cline x1='80' y1='50' x2='90' y2='50' stroke='%23ffff00' stroke-width='3'/%3E%3C/svg%3E" alt="sun">
+                        <div class="option-label">Sun</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 2 -->
+            <div class="question-block">
+                <div class="question-title">Question 2</div>
+                <div class="audio-section">
+                    <button type="button" class="play-btn" onclick="playAudio('apple')">🔊 Listen</button>
+                    <div class="audio-info">Tap to hear the word twice</div>
+                </div>
+                <div class="options">
+                    <div class="option" onclick="selectAnswer(this, 'q2', 'cat')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='55' r='25' fill='%23ff9800'/%3E%3Ccircle cx='50' cy='35' r='20' fill='%23ff9800'/%3E%3Cpolygon points='35,20 30,10 40,18' fill='%23ff9800'/%3E%3Cpolygon points='65,20 70,10 60,18' fill='%23ff9800'/%3E%3C/svg%3E" alt="cat">
+                        <div class="option-label">Cat</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q2', 'apple')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='22' fill='%23d32f2f'/%3E%3Crect x='48' y='20' width='4' height='15' fill='%23228b22'/%3E%3Cpolygon points='48,22 45,15 52,20' fill='%23228b22'/%3E%3C/svg%3E" alt="apple">
+                        <div class="option-label">Apple</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q2', 'house')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='50,20 20,50 30,50 30,80 70,80 70,50 80,50' fill='%238b4513'/%3E%3Crect x='45' y='55' width='10' height='15' fill='%23654321'/%3E%3C/svg%3E" alt="house">
+                        <div class="option-label">House</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Question 3 -->
+            <div class="question-block">
+                <div class="question-title">Question 3</div>
+                <div class="audio-section">
+                    <button type="button" class="play-btn" onclick="playAudio('water')">🔊 Listen</button>
+                    <div class="audio-info">Tap to hear the word twice</div>
+                </div>
+                <div class="options">
+                    <div class="option" onclick="selectAnswer(this, 'q3', 'mountain')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpolygon points='20,70 50,30 80,70' fill='%238b7355'/%3E%3Cpolygon points='50,70 70,45 90,70' fill='%23a0826d'/%3E%3C/svg%3E" alt="mountain">
+                        <div class="option-label">Mountain</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q3', 'water')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M 20 60 Q 30 45 40 60 T 60 60 T 80 60 L 80 80 L 20 80 Z' fill='%231e90ff'/%3E%3Ccircle cx='35' cy='50' r='3' fill='%23ffffff' opacity='0.5'/%3E%3Ccircle cx='55' cy='55' r='3' fill='%23ffffff' opacity='0.5'/%3E%3C/svg%3E" alt="water">
+                        <div class="option-label">Water</div>
+                    </div>
+                    <div class="option" onclick="selectAnswer(this, 'q3', 'bird')">
+                        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='45' r='15' fill='%23daa520'/%3E%3Cpolygon points='65,45 75,40 75,50' fill='%23daa520'/%3E%3Cpolygon points='30,50 20,45 20,55' fill='%23000000'/%3E%3Cpolygon points='35,60 30,70 40,65' fill='%23000000'/%3E%3C/svg%3E" alt="bird">
+                        <div class="option-label">Bird</div>
+                    </div>
+                </div>
+            </div>
+
+            <button type="submit" class="submit-btn">Submit Test</button>
+        </form>
+
+        <!-- Results Section -->
+        <div id="results" class="results">
+            <div class="result-title">📊 Test Results</div>
+            <div id="resultDetails"></div>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-value" id="correctCount">0</div>
+                    <div class="stat-label">Correct Answers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="scorePercent">0%</div>
+                    <div class="stat-label">Score</div>
+                </div>
+            </div>
+            <div class="nav-buttons" id="navButtons">
+                <a href="results.html" style="text-decoration: none;"><button class="nav-btn results-btn" type="button">View All Results →</button></a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const correctAnswers = {
+            'q1': 'flower',
+            'q2': 'apple',
+            'q3': 'water'
+        };
+
+        const userAnswers = {};
+
+        function playAudio(word) {
+            // Create text-to-speech audio
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.rate = 0.8;
+            utterance.pitch = 1.2;
+            
+            // Play twice with delay
+            window.speechSynthesis.speak(utterance);
+            
+            setTimeout(() => {
+                const utterance2 = new SpeechSynthesisUtterance(word);
+                utterance2.rate = 0.8;
+                utterance2.pitch = 1.2;
+                window.speechSynthesis.speak(utterance2);
+            }, 1500);
+        }
+
+        function selectAnswer(element, questionId, answer) {
+            // Remove previous selection from this question
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option').forEach(opt => opt.classList.remove('selected'));
+            
+            // Add selected class
+            element.classList.add('selected');
+            
+            // Store answer
+            userAnswers[questionId] = answer;
+        }
+
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // Check all questions answered
+            if (Object.keys(userAnswers).length < 3) {
+                alert('Please answer all questions!');
+                return;
+            }
+
+            // Calculate results
+            let correct = 0;
+            const results = [];
+
+            for (let i = 1; i <= 3; i++) {
+                const qId = `q${i}`;
+                const isCorrect = userAnswers[qId] === correctAnswers[qId];
+                if (isCorrect) correct++;
+                
+                results.push({
+                    question: i,
+                    userAnswer: userAnswers[qId],
+                    correctAnswer: correctAnswers[qId],
+                    isCorrect: isCorrect
+                });
+            }
+
+            const score = (correct / 3) * 100;
+
+            // Prepare data for API
+            const testData = {
+                testType: "listening",
+                totalQuestions: 3,
+                correctAnswers: correct,
+                score: score,
+                timestamp: new Date().toISOString(),
+                answers: userAnswers,
+                results: results
+            };
+
+            // Send to API
+            try {
+                const res = await fetch("http://localhost:5000/chat", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        message: `Test Results: ${JSON.stringify(testData)}`
+                    })
+                });
+                const data = await res.json();
+                console.log("API Response:", data);
+            } catch (e) {
+                console.error("API Error:", e);
+            }
+
+            // Display results
+            displayResults(correct, score, results);
+        });
+
+        function displayResults(correct, score, results) {
+            const resultDetails = document.getElementById('resultDetails');
+            let html = '';
+
+            results.forEach(result => {
+                const status = result.isCorrect ? 
+                    `<span class="result-correct">✓ Correct</span>` : 
+                    `<span class="result-incorrect">✗ Incorrect (Correct: ${result.correctAnswer})</span>`;
+                
+                html += `
+                    <div class="result-item">
+                        <strong>Question ${result.question}:</strong> You answered "${result.userAnswer}" - ${status}
+                    </div>
+                `;
+            });
+
+            resultDetails.innerHTML = html;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('scorePercent').textContent = Math.round(score) + '%';
+            document.getElementById('results').classList.add('show');
+            document.getElementById('navButtons').classList.add('show');
+        }
+    </script>
+</body>
+</html>

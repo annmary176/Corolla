@@ -7,6 +7,17 @@ import json
 import tempfile
 import os
 from data_logger import log_test_data
+import sys
+
+# Import petal modules for prediction
+try:
+    import petal_reading
+    import petal_logic
+    import petal_writing
+    import petal_memory
+    PETAL_MODULES_AVAILABLE = True
+except ImportError:
+    PETAL_MODULES_AVAILABLE = False
 
 try:
     from faster_whisper import WhisperModel  # type: ignore
@@ -84,6 +95,21 @@ class Test4Data(BaseModel):
     speaking_time_ms: int  # Duration of speaking
     max_speaking_time_ms: int  # Maximum allowed time
     audio_file: Optional[str] = None  # Path to audio file
+
+# ============ PETAL PREDICTION MODELS ============
+
+class PetalPredictionRequest(BaseModel):
+    """Request model for petal predictions"""
+    values: List[float]  # 4 normalized values
+
+class ConsolidatedAnalysisRequest(BaseModel):
+    """Request for consolidated analysis with all tests"""
+    user_id: str
+    test_id: str
+    reading_values: List[float]  # Test1: 4 values from reading test
+    logic_values: List[float]    # Test2: 4 values from logic test
+    writing_values: List[float]  # Test3: 4 values from writing test
+    memory_values: List[float]   # Test4: 4 values from memory test
 
 # ============ HELPER FUNCTIONS ============
 
@@ -393,6 +419,160 @@ async def root():
         }
     }
 
+# ============ PETAL PREDICTION ENDPOINTS ============
+
+@app.post("/predict-reading")
+async def predict_reading(request: PetalPredictionRequest):
+    """
+    Predict reading risk based on normalized values from test1
+    Input: 4 normalized values [reading_accuracy, reading_time, words_read, pronunciation_error]
+    """
+    try:
+        if not PETAL_MODULES_AVAILABLE:
+            return {"error": "Petal modules not available"}
+        
+        result = petal_reading.predict_read(request.values)
+        return {
+            "success": True,
+            "test_type": "reading",
+            "prediction": result
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "test_type": "reading"
+        }
+
+@app.post("/predict-logic")
+async def predict_logic(request: PetalPredictionRequest):
+    """
+    Predict logic risk based on normalized values from test2
+    Input: 4 normalized values [logic_accuracy, logic_time, questions_ratio, logical_error]
+    """
+    try:
+        if not PETAL_MODULES_AVAILABLE:
+            return {"error": "Petal modules not available"}
+        
+        result = petal_logic.predict_logic(request.values)
+        return {
+            "success": True,
+            "test_type": "logic",
+            "prediction": result
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "test_type": "logic"
+        }
+
+@app.post("/predict-writing")
+async def predict_writing(request: PetalPredictionRequest):
+    """
+    Predict writing risk based on normalized values from test3
+    Input: 4 normalized values [grammar_score, writing_time, word_count, spelling_errors]
+    """
+    try:
+        if not PETAL_MODULES_AVAILABLE:
+            return {"error": "Petal modules not available"}
+        
+        result = petal_writing.predict_write(request.values)
+        return {
+            "success": True,
+            "test_type": "writing",
+            "prediction": result
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "test_type": "writing"
+        }
+
+@app.post("/predict-memory")
+async def predict_memory(request: PetalPredictionRequest):
+    """
+    Predict memory risk based on normalized values from test4
+    Input: 4 normalized values from memory test
+    """
+    try:
+        if not PETAL_MODULES_AVAILABLE:
+            return {"error": "Petal modules not available"}
+        
+        result = petal_memory.predict_mem(request.values)
+        return {
+            "success": True,
+            "test_type": "memory",
+            "prediction": result
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "test_type": "memory"
+        }
+
+@app.post("/consolidated-analysis")
+async def consolidated_analysis(request: ConsolidatedAnalysisRequest):
+    """
+    Perform consolidated analysis across all four tests
+    Calls decision tree with aggregated results
+    """
+    try:
+        if not PETAL_MODULES_AVAILABLE:
+            return {"error": "Petal modules not available"}
+        
+        # Get predictions from all petal modules
+        reading_pred = petal_reading.predict_read(request.reading_values)
+        logic_pred = petal_logic.predict_logic(request.logic_values)
+        writing_pred = petal_writing.predict_write(request.writing_values)
+        memory_pred = petal_memory.predict_mem(request.memory_values)
+        
+        # Extract scores for decision tree
+        decision_tree_input = {
+            "reading_score": reading_pred.get("reading_score", 0),
+            "logic_score": logic_pred.get("logic_score", 0),
+            "writing_score": writing_pred.get("writing_score", 0),
+            "memory_score": memory_pred.get("memory_score", 0),
+            "reading_time": request.reading_values[1] if len(request.reading_values) > 1 else 0,
+            "logic_time": request.logic_values[1] if len(request.logic_values) > 1 else 0,
+            "writing_time": request.writing_values[1] if len(request.writing_values) > 1 else 0,
+            "memory_time": request.memory_values[1] if len(request.memory_values) > 1 else 0
+        }
+        
+        return {
+            "success": True,
+            "user_id": request.user_id,
+            "test_id": request.test_id,
+            "petal_predictions": {
+                "reading": reading_pred,
+                "logic": logic_pred,
+                "writing": writing_pred,
+                "memory": memory_pred
+            },
+            "analysis_data": decision_tree_input,
+            "consolidated_scores": {
+                "avg_reading": round(reading_pred.get("reading_score", 0), 2),
+                "avg_logic": round(logic_pred.get("logic_score", 0), 2),
+                "avg_writing": round(writing_pred.get("writing_score", 0), 2),
+                "avg_memory": round(memory_pred.get("memory_score", 0), 2),
+                "overall_average": round(
+                    (reading_pred.get("reading_score", 0) + 
+                     logic_pred.get("logic_score", 0) + 
+                     writing_pred.get("writing_score", 0) + 
+                     memory_pred.get("memory_score", 0)) / 4,
+                    2
+                )
+            }
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e),
+            "user_id": request.user_id
+        }
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8001)

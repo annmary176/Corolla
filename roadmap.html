@@ -6,156 +6,288 @@
 <title>Corolla — Roadmap</title>
 
 <style>
-  body{
-    margin:0;
-    font-family:"Comic Sans MS","Noto Sans Malayalam",sans-serif;
-    background:#fffdf8;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    height:100vh;
+  :root {
+    --primary-purple: #8b5cf6;
+    --light-purple: #ede9fe;
+    --gloss-white: rgba(255, 255, 255, 0.85);
+    --completed-green: #10b981;
   }
 
-  .wrap{
-    width:90%;
-    max-width:900px;
-    text-align:center;
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: radial-gradient(circle at center, #f5f3ff 0%, #e0e7ff 100%);
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding: 40px 0;
   }
 
-  h2{color:#ff6b6b;margin-bottom:30px}
-
-  .road{
-    position:relative;
-    margin:40px 0;
+  /* Vertical Waving Path Background */
+  .path-svg {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 0;
+    height: 100%;
+    width: 200px;
+    opacity: 0.3;
   }
 
-  .line{
-    height:6px;
-    background:#eee;
-    border-radius:10px;
+  .wrap {
+    position: relative;
+    z-index: 1;
+    width: 90%;
+    max-width: 500px;
+    text-align: center;
   }
 
-  .steps{
-    display:flex;
-    justify-content:space-between;
-    margin-top:-18px;
+  h2 {
+    color: var(--primary-purple);
+    font-size: 2rem;
+    font-weight: 800;
+    margin-bottom: 50px;
+    text-shadow: 0 4px 10px rgba(139, 92, 246, 0.2);
   }
 
-  .step{
-    position:relative;
-    width:70px;
-    text-align:center;
+  /* The Candy Crush Style Vertical Road */
+  .road-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+    position: relative;
+    padding-bottom: 100px;
   }
 
-  .circle{
-    width:60px;
-    height:60px;
-    border-radius:50%;
-    background:#4ecdc4;
-    color:white;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:20px;
-    margin:auto;
+  /* Each Level Node */
+  .level-node {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-  .label{
-    font-size:12px;
-    margin-top:6px;
+  /* Waving horizontal offset for "Candy Crush" feel */
+  .level-node:nth-child(even) { transform: translateX(60px); }
+  .level-node:nth-child(odd) { transform: translateX(-60px); }
+
+  .level-node.locked {
+    filter: grayscale(1) opacity(0.5);
+    cursor: not-allowed;
   }
 
-  .start .circle{background:#ffd23f;color:#000}
-  .result .circle{background:#ff6b6b}
-
-  /* pointer */
-  .pointer{
-    position:absolute;
-    top:-32px;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:22px;
-    animation:bounce 1s infinite;
+  .circle {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: var(--gloss-white);
+    border: 4px solid white;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2), inset 0 0 15px rgba(255,255,255,1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    position: relative;
+    z-index: 2;
+    transition: transform 0.3s;
   }
 
-  @keyframes bounce{
-    0%,100%{transform:translate(-50%,0)}
-    50%{transform:translate(-50%,-6px)}
+  .level-node.active .circle {
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    color: white;
+    transform: scale(1.15);
+    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
   }
 
-  button{
-    padding:10px 20px;
-    border:none;
-    border-radius:10px;
-    background:#ff6b6b;
-    color:white;
-    font-size:15px;
-    cursor:pointer;
+  .level-node.completed .circle {
+    background: #10b981;
+    color: white;
+    border-color: #d1fae5;
   }
+
+  .label {
+    margin-top: 10px;
+    font-weight: 700;
+    color: #4b5563;
+    font-size: 14px;
+    background: var(--gloss-white);
+    padding: 4px 12px;
+    border-radius: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  }
+
+  /* Shiny Gloss Animation */
+  .circle::after {
+    content: '';
+    position: absolute;
+    top: 5%; left: 10%;
+    width: 80%; height: 40%;
+    background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
+    border-radius: 50% 50% 10% 10%;
+    pointer-events: none;
+  }
+
+  /* Bouncing Pointer for current stage */
+  .pointer {
+    position: absolute;
+    top: -45px;
+    font-size: 32px;
+    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
+    animation: bounce 1.2s infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+
+  /* Action Button Overlay */
+  .action-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: var(--gloss-white);
+    backdrop-filter: blur(10px);
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    border-top: 1px solid rgba(255,255,255,0.5);
+    box-shadow: 0 -10px 25px rgba(0,0,0,0.05);
+    z-index: 100;
+  }
+
+  button {
+    padding: 16px 40px;
+    border: none;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
+    color: white;
+    font-size: 18px;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
+    transition: 0.3s;
+  }
+
+  button:hover { transform: translateY(-3px); filter: brightness(1.1); }
 </style>
 </head>
 
 <body>
 
 <div class="wrap">
-  <h2 id="title">Your Learning Path 🌸</h2>
+  <h2 id="title">Adventure Path 🌸</h2>
 
-  <div class="road">
-    <div class="line"></div>
+  <div class="road-container" id="road">
+    <!-- Level 1 -->
+    <div class="level-node" id="node-1" onclick="navigateTo(1)">
+      <div class="pointer" id="ptr-1">🌸</div>
+      <div class="circle">1</div>
+      <div class="label">Reading Garden</div>
+    </div>
 
-    <div class="steps">
+    <!-- Level 2 -->
+    <div class="level-node" id="node-2" onclick="navigateTo(2)">
+      <div class="pointer" id="ptr-2" style="display:none">🌸</div>
+      <div class="circle">2</div>
+      <div class="label">Math Meadow</div>
+    </div>
 
-      <div class="step start" id="step-start">
-        <div class="pointer" id="ptr-start">⬇</div>
-        <div class="circle">▶</div>
-        <div class="label">Start</div>
-      </div>
+    <!-- Level 3 -->
+    <div class="level-node" id="node-3" onclick="navigateTo(3)">
+      <div class="pointer" id="ptr-3" style="display:none">🌸</div>
+      <div class="circle">3</div>
+      <div class="label">Writing Woods</div>
+    </div>
 
-      <div class="step">
-        <div class="circle">1</div>
-        <div class="label">Reading</div>
-      </div>
+    <!-- Level 4 -->
+    <div class="level-node" id="node-4" onclick="navigateTo(4)">
+      <div class="pointer" id="ptr-4" style="display:none">🌸</div>
+      <div class="circle">4</div>
+      <div class="label">Memory Mountain</div>
+    </div>
 
-      <div class="step">
-        <div class="circle">2</div>
-        <div class="label">Math</div>
-      </div>
-
-      <div class="step">
-        <div class="circle">3</div>
-        <div class="label">Writing</div>
-      </div>
-
-      <div class="step result" id="step-result">
-        <div class="pointer" id="ptr-end">⬇</div>
-        <div class="circle">🏁</div>
-        <div class="label">Result</div>
-      </div>
-
+    <!-- Finish -->
+    <div class="level-node" id="node-5" onclick="navigateTo(5)">
+      <div class="pointer" id="ptr-5" style="display:none">🏁</div>
+      <div class="circle">✨</div>
+      <div class="label">Results Portal</div>
     </div>
   </div>
+</div>
 
-  <button id="actionBtn">Start</button>
+<div class="action-bar">
+  <button id="actionBtn" onclick="startCurrentLevel()">Continue Journey</button>
 </div>
 
 <script>
-const mode = new URLSearchParams(location.search).get("mode") || "start";
+  // Check completion state
+  const testData = JSON.parse(localStorage.getItem('testResults') || '{}');
+  
+  // Determine current stage
+  let currentStage = 1;
+  if (testData.test4) currentStage = 5;
+  else if (testData.test3) currentStage = 4;
+  else if (testData.test2) currentStage = 3;
+  else if (testData.test1) currentStage = 2;
 
-const ptrStart = document.getElementById("ptr-start");
-const ptrEnd   = document.getElementById("ptr-end");
-const btn      = document.getElementById("actionBtn");
-const title    = document.getElementById("title");
+  function updateUI() {
+    const btn = document.getElementById("actionBtn");
+    const title = document.getElementById("title");
 
-if(mode === "start"){
-  ptrEnd.style.display = "none";
-  btn.textContent = "Start";
-  btn.onclick = () => location.href = "test1.html";
-}else{
-  ptrStart.style.display = "none";
-  title.textContent = "Journey Completed 🎉";
-  btn.textContent = "View Result";
-  btn.onclick = () => location.href = "results.html";
-}
+    for (let i = 1; i <= 5; i++) {
+      const node = document.getElementById(`node-${i}`);
+      const ptr = document.getElementById(`ptr-${i}`);
+      
+      node.classList.remove('active', 'completed', 'locked');
+      ptr.style.display = 'none';
+
+      if (i < currentStage) {
+        node.classList.add('completed');
+      } else if (i === currentStage) {
+        node.classList.add('active');
+        ptr.style.display = 'block';
+      } else {
+        node.classList.add('locked');
+      }
+    }
+
+    if (currentStage === 5) {
+      title.textContent = "Journey Complete! 🎉";
+      btn.textContent = "View Your Flower";
+    } else {
+      btn.textContent = "Play Level " + currentStage;
+    }
+  }
+
+  function startCurrentLevel() {
+    navigateTo(currentStage);
+  }
+
+  function navigateTo(stage) {
+    if (stage > currentStage) return; // Prevent skipping
+    
+    const routes = {
+      1: "test1.html",
+      2: "test2.html",
+      3: "test3.html",
+      4: "test4.html",
+      5: "results.html"
+    };
+
+    if (routes[stage]) {
+      window.location.assign(routes[stage]);
+    }
+  }
+
+  // Initialize UI
+  updateUI();
 </script>
 
 </body>
