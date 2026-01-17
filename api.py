@@ -573,6 +573,93 @@ async def consolidated_analysis(request: ConsolidatedAnalysisRequest):
             "user_id": request.user_id
         }
 
+@app.post("/predict-results")
+async def predict_results(data: dict = Body(...)):
+    """
+    Analyze test results with decision tree
+    Input: test scores as percentages (0-100)
+    Returns: petal analysis for flower visualization
+    """
+    try:
+        import joblib
+        import pandas as pd
+        
+        # Extract scores and convert to 0-1 range
+        reading_score = data.get("reading_score", 50) / 100
+        logic_score = data.get("logic_score", 50) / 100
+        writing_score = data.get("writing_score", 50) / 100
+        memory_score = data.get("memory_score", 50) / 100
+        
+        # Get times (default to 5000ms)
+        reading_time = data.get("reading_time", 5000)
+        logic_time = data.get("logic_time", 5000)
+        writing_time = data.get("writing_time", 5000)
+        memory_time = data.get("memory_time", 5000)
+        
+        # Prepare decision tree input
+        dt_input = {
+            "reading_score": reading_score,
+            "logic_score": logic_score,
+            "writing_score": writing_score,
+            "memory_score": memory_score,
+            "reading_time": reading_time,
+            "logic_time": logic_time,
+            "writing_time": writing_time,
+            "memory_time": memory_time
+        }
+        
+        # Load and run decision tree
+        MODEL_PATH = "trained/decision_tree_model.pkl"
+        petal_predictions = {}
+        
+        if os.path.exists(MODEL_PATH):
+            try:
+                model = joblib.load(MODEL_PATH)
+                df = pd.DataFrame([dt_input])
+                preds = model.predict(df)[0]
+                
+                petal_predictions = {
+                    "dyslexia": round(float(preds[0]) * 100, 2),
+                    "dyscalculia": round(float(preds[1]) * 100, 2),
+                    "dysgraphia": round(float(preds[2]) * 100, 2),
+                    "adhd": round(float(preds[3]) * 100, 2)
+                }
+            except Exception as e:
+                print(f"Decision tree error: {e}")
+                # Fallback to inverse scores
+                petal_predictions = {
+                    "dyslexia": round((1 - reading_score) * 100, 2),
+                    "dyscalculia": round((1 - logic_score) * 100, 2),
+                    "dysgraphia": round((1 - writing_score) * 100, 2),
+                    "adhd": round((1 - memory_score) * 100, 2)
+                }
+        else:
+            # Fallback if model not found
+            petal_predictions = {
+                "dyslexia": round((1 - reading_score) * 100, 2),
+                "dyscalculia": round((1 - logic_score) * 100, 2),
+                "dysgraphia": round((1 - writing_score) * 100, 2),
+                "adhd": round((1 - memory_score) * 100, 2)
+            }
+        
+        # Calculate overall average
+        avg_score = (reading_score + logic_score + writing_score + memory_score) / 4 * 100
+        
+        return {
+            "success": True,
+            "performance_level": "🌟 Excellent" if avg_score > 75 
+                               else "👍 Good" if avg_score > 50 
+                               else "📚 Average" if avg_score > 25
+                               else "💪 Developing",
+            "overall_avg": round(avg_score, 2),
+            "petals": petal_predictions
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)

@@ -258,6 +258,16 @@ function sendToAPI() {
     };
     localStorage.setItem('testResults', JSON.stringify(allResults));
     
+    // Save progress to roadmap
+    const progress = JSON.parse(localStorage.getItem('roadmapProgress') || '{}');
+    progress.completedLevels = progress.completedLevels || [];
+    if (!progress.completedLevels.includes(3)) {
+      progress.completedLevels.push(3);
+    }
+    progress.currentLevel = 4;
+    progress.lastUpdated = new Date().toISOString();
+    localStorage.setItem('roadmapProgress', JSON.stringify(progress));
+    
     // Always go to next test
     window.location.href = NEXT_TEST_URL;
   })

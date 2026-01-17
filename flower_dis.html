@@ -163,7 +163,26 @@
             });
 
             const renderFlower = (result) => {
-                const overallScore = (features.reading_score + features.logic_score + features.writing_score + features.memory_score) / 4;
+                // Use API result if available, otherwise fall back to feature scores
+                let overallScore, petals;
+                
+                if (result && result.success && result.petals) {
+                    // Use decision tree analysis from API
+                    overallScore = result.overall_avg;
+                    petals = result.petals;
+                    console.log("Using API analysis:", result);
+                } else {
+                    // Fallback to raw score averages
+                    overallScore = (features.reading_score + features.logic_score + features.writing_score + features.memory_score) / 4;
+                    petals = {
+                        dyslexia: 100 - (features.reading_score),
+                        dyscalculia: 100 - (features.logic_score),
+                        dysgraphia: 100 - (features.writing_score),
+                        adhd: 100 - (features.memory_score)
+                    };
+                    console.log("Using fallback analysis");
+                }
+                
                 document.getElementById('center-score').innerText = Math.round(overallScore) + "%";
                 
                 const performanceLevel = overallScore > 75 ? "🌟 Excellent" : 
@@ -187,10 +206,11 @@
                     }
                 };
 
-                updatePetal('dyslexia', features.reading_score);
-                updatePetal('dyscalculia', features.logic_score);
-                updatePetal('dysgraphia', features.writing_score);
-                updatePetal('adhd', features.memory_score);
+                // Update petals with analysis results
+                updatePetal('dyslexia', petals.dyslexia);
+                updatePetal('dyscalculia', petals.dyscalculia);
+                updatePetal('dysgraphia', petals.dysgraphia);
+                updatePetal('adhd', petals.adhd);
             };
 
             try {

@@ -1,268 +1,431 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Corolla — Roadmap</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Corolla — Roadmap</title>
 
-<style>
-  :root {
-    --primary-purple: #8b5cf6;
-    --light-purple: #ede9fe;
-    --gloss-white: rgba(255, 255, 255, 0.85);
-    --completed-green: #10b981;
-  }
+  <style>
+    :root {
+      --primary-purple: #8b5cf6;
+      --light-purple: #ede9fe;
+      --gloss-white: rgba(255, 255, 255, 0.9);
+      --completed-green: #10b981;
+      --locked-gray: #cbd5e1;
+      --bg-gradient: linear-gradient(180deg, #f5f3ff 0%, #dbeafe 100%);
+    }
 
-  body {
-    margin: 0;
-    font-family: 'Segoe UI', Roboto, sans-serif;
-    background: radial-gradient(circle at center, #f5f3ff 0%, #e0e7ff 100%);
-    display: flex;
-    justify-content: center;
-    min-height: 100vh;
-    overflow-x: hidden;
-    padding: 40px 0;
-  }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg-gradient);
+      display: flex;
+      justify-content: center;
+      min-height: 100vh;
+      overflow-x: hidden;
+      padding: 40px 0 120px 0;
+      position: relative;
+    }
 
-  /* Vertical Waving Path Background */
-  .path-svg {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 0;
-    height: 100%;
-    width: 200px;
-    opacity: 0.3;
-  }
+    /* Animated Bubble Background */
+    .bubbles {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
 
-  .wrap {
-    position: relative;
-    z-index: 1;
-    width: 90%;
-    max-width: 500px;
-    text-align: center;
-  }
+    .bubble {
+      position: absolute;
+      bottom: -100px;
+      background: rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      animation: float 15s infinite ease-in;
+      box-shadow: inset 0 0 10px rgba(255,255,255,0.5);
+    }
 
-  h2 {
-    color: var(--primary-purple);
-    font-size: 2rem;
-    font-weight: 800;
-    margin-bottom: 50px;
-    text-shadow: 0 4px 10px rgba(139, 92, 246, 0.2);
-  }
+    @keyframes float {
+      0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+      10% { opacity: 0.5; }
+      90% { opacity: 0.5; }
+      100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+    }
 
-  /* The Candy Crush Style Vertical Road */
-  .road-container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 40px;
-    position: relative;
-    padding-bottom: 100px;
-  }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      width: 90%;
+      max-width: 500px;
+      text-align: center;
+    }
 
-  /* Each Level Node */
-  .level-node {
-    position: relative;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  }
+    h2 {
+      color: var(--primary-purple);
+      font-size: 2.5rem;
+      font-weight: 900;
+      margin-bottom: 60px;
+      text-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+      letter-spacing: -1px;
+    }
 
-  /* Waving horizontal offset for "Candy Crush" feel */
-  .level-node:nth-child(even) { transform: translateX(60px); }
-  .level-node:nth-child(odd) { transform: translateX(-60px); }
+    .road-container {
+      display: flex;
+      flex-direction: column-reverse; 
+      align-items: center;
+      gap: 70px;
+      position: relative;
+      padding: 20px 0;
+    }
 
-  .level-node.locked {
-    filter: grayscale(1) opacity(0.5);
-    cursor: not-allowed;
-  }
+    /* Level Node Styling */
+    .level-node {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
 
-  .circle {
-    width: 80px;
-    height: 80px;
-    border-radius: 50%;
-    background: var(--gloss-white);
-    border: 4px solid white;
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.2), inset 0 0 15px rgba(255,255,255,1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 28px;
-    position: relative;
-    z-index: 2;
-    transition: transform 0.3s;
-  }
+    /* Staggered Path */
+    .level-node:nth-child(1) { transform: translateX(0); }
+    .level-node:nth-child(2) { transform: translateX(80px); }
+    .level-node:nth-child(3) { transform: translateX(-80px); }
+    .level-node:nth-child(4) { transform: translateX(80px); }
+    .level-node:nth-child(5) { transform: translateX(0); }
 
-  .level-node.active .circle {
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-    color: white;
-    transform: scale(1.15);
-    box-shadow: 0 0 30px rgba(139, 92, 246, 0.6);
-  }
+    .circle {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      background: white;
+      border: 6px solid white;
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1), inset 0 -8px 0 rgba(0,0,0,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 34px;
+      font-weight: 900;
+      position: relative;
+      z-index: 2;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
 
-  .level-node.completed .circle {
-    background: #10b981;
-    color: white;
-    border-color: #d1fae5;
-  }
+    /* Locked state specific styling */
+    .level-node.locked .circle {
+      background: #e2e8f0 !important;
+      color: #94a3b8 !important;
+      border-color: #f1f5f9 !important;
+      box-shadow: none !important;
+      cursor: not-allowed;
+      filter: grayscale(1);
+    }
 
-  .label {
-    margin-top: 10px;
-    font-weight: 700;
-    color: #4b5563;
-    font-size: 14px;
-    background: var(--gloss-white);
-    padding: 4px 12px;
-    border-radius: 20px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  }
+    .level-node.locked .label {
+      opacity: 0.6;
+      background: #f1f5f9;
+    }
 
-  /* Shiny Gloss Animation */
-  .circle::after {
-    content: '';
-    position: absolute;
-    top: 5%; left: 10%;
-    width: 80%; height: 40%;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.6), transparent);
-    border-radius: 50% 50% 10% 10%;
-    pointer-events: none;
-  }
+    /* Active & Completed States */
+    .level-node.active .circle {
+      background: linear-gradient(135deg, #f472b6, #db2777);
+      color: white;
+      transform: scale(1.15);
+      box-shadow: 0 0 40px rgba(219, 39, 119, 0.4);
+      border-color: #fce7f3;
+    }
 
-  /* Bouncing Pointer for current stage */
-  .pointer {
-    position: absolute;
-    top: -45px;
-    font-size: 32px;
-    filter: drop-shadow(0 4px 4px rgba(0,0,0,0.2));
-    animation: bounce 1.2s infinite;
-  }
+    .level-node.completed .circle {
+      background: linear-gradient(135deg, #34d399, #10b981);
+      color: white;
+      border-color: #d1fae5;
+    }
 
-  @keyframes bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
-  }
+    .label {
+      margin-top: 15px;
+      font-weight: 800;
+      color: #475569;
+      font-size: 15px;
+      background: white;
+      padding: 8px 20px;
+      border-radius: 25px;
+      box-shadow: 0 6px 12px rgba(0,0,0,0.08);
+      border: 2px solid transparent;
+      white-space: nowrap;
+    }
 
-  /* Action Button Overlay */
-  .action-bar {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    background: var(--gloss-white);
-    backdrop-filter: blur(10px);
-    padding: 20px;
-    display: flex;
-    justify-content: center;
-    border-top: 1px solid rgba(255,255,255,0.5);
-    box-shadow: 0 -10px 25px rgba(0,0,0,0.05);
-    z-index: 100;
-  }
+    .level-node.active .label {
+      border-color: #f472b6;
+      color: #db2777;
+    }
 
-  button {
-    padding: 16px 40px;
-    border: none;
-    border-radius: 20px;
-    background: linear-gradient(135deg, #a78bfa, #8b5cf6);
-    color: white;
-    font-size: 18px;
-    font-weight: 800;
-    cursor: pointer;
-    box-shadow: 0 10px 20px rgba(139, 92, 246, 0.3);
-    transition: 0.3s;
-  }
+    /* Error Shake Animation */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+    .shake { animation: shake 0.3s ease-in-out; }
 
-  button:hover { transform: translateY(-3px); filter: brightness(1.1); }
-</style>
+    /* Floating Pointer */
+    .pointer {
+      position: absolute;
+      top: -60px;
+      font-size: 44px;
+      animation: bounce 2s infinite ease-in-out;
+      z-index: 10;
+      pointer-events: none;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50% { transform: translateY(-15px) rotate(5deg); }
+    }
+
+    .action-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.7);
+      backdrop-filter: blur(20px);
+      padding: 30px;
+      display: flex;
+      justify-content: center;
+      border-top: 2px solid white;
+      z-index: 100;
+    }
+
+    button {
+      padding: 20px 60px;
+      border: none;
+      border-radius: 30px;
+      background: linear-gradient(135deg, #f472b6, #db2777);
+      color: white;
+      font-size: 22px;
+      font-weight: 900;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(219, 39, 119, 0.4), inset 0 -4px 0 rgba(0,0,0,0.1);
+      transition: transform 0.2s, filter 0.2s;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
+
+    .lock-icon {
+      position: absolute;
+      bottom: -2px;
+      right: -2px;
+      background: white;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      border: 2px solid #e2e8f0;
+      color: #64748b;
+    }
+  </style>
 </head>
 
 <body>
 
+<div class="bubbles" id="bubble-container"></div>
+
 <div class="wrap">
-  <h2 id="title">Adventure Path 🌸</h2>
+  <h2 id="title">Adventure Map ✨</h2>
 
   <div class="road-container" id="road">
-    <!-- Level 1 -->
-    <div class="level-node" id="node-1" onclick="navigateTo(1)">
+    <!-- Level 1: Always available by default if no data exists -->
+    <div class="level-node" id="node-1" onclick="handleNodeClick(1)">
       <div class="pointer" id="ptr-1">🌸</div>
       <div class="circle">1</div>
       <div class="label">Reading Garden</div>
     </div>
 
     <!-- Level 2 -->
-    <div class="level-node" id="node-2" onclick="navigateTo(2)">
+    <div class="level-node" id="node-2" onclick="handleNodeClick(2)">
       <div class="pointer" id="ptr-2" style="display:none">🌸</div>
-      <div class="circle">2</div>
+      <div class="circle">2<div class="lock-icon">🔒</div></div>
       <div class="label">Math Meadow</div>
     </div>
 
     <!-- Level 3 -->
-    <div class="level-node" id="node-3" onclick="navigateTo(3)">
+    <div class="level-node" id="node-3" onclick="handleNodeClick(3)">
       <div class="pointer" id="ptr-3" style="display:none">🌸</div>
-      <div class="circle">3</div>
+      <div class="circle">3<div class="lock-icon">🔒</div></div>
       <div class="label">Writing Woods</div>
     </div>
 
     <!-- Level 4 -->
-    <div class="level-node" id="node-4" onclick="navigateTo(4)">
+    <div class="level-node" id="node-4" onclick="handleNodeClick(4)">
       <div class="pointer" id="ptr-4" style="display:none">🌸</div>
-      <div class="circle">4</div>
+      <div class="circle">4<div class="lock-icon">🔒</div></div>
       <div class="label">Memory Mountain</div>
     </div>
 
-    <!-- Finish -->
-    <div class="level-node" id="node-5" onclick="navigateTo(5)">
+    <!-- Level 5 -->
+    <div class="level-node" id="node-5" onclick="handleNodeClick(5)">
       <div class="pointer" id="ptr-5" style="display:none">🏁</div>
-      <div class="circle">✨</div>
+      <div class="circle">✨<div class="lock-icon">🔒</div></div>
       <div class="label">Results Portal</div>
     </div>
   </div>
 </div>
 
 <div class="action-bar">
-  <button id="actionBtn" onclick="startCurrentLevel()">Continue Journey</button>
+  <button id="actionBtn" onclick="startCurrentLevel()">Start Adventure!</button>
 </div>
 
 <script>
-  // Check completion state
-  const testData = JSON.parse(localStorage.getItem('testResults') || '{}');
+  // ============ PROGRESS MANAGEMENT ============
+  // ALWAYS reset localStorage when roadmap page loads (fresh start)
+  const ROADMAP_PROGRESS_KEY = 'roadmapProgress';
   
-  // Determine current stage
-  let currentStage = 1;
-  if (testData.test4) currentStage = 5;
-  else if (testData.test3) currentStage = 4;
-  else if (testData.test2) currentStage = 3;
-  else if (testData.test1) currentStage = 2;
+  function initializeProgress() {
+    // ALWAYS clear old test results and reset progress on roadmap load
+    localStorage.removeItem('testResults');
+    localStorage.removeItem(ROADMAP_PROGRESS_KEY);
+    localStorage.removeItem('flowerData');
+    
+    // Initialize fresh progress
+    initializeRoadmapProgress();
+  }
+
+  function initializeRoadmapProgress() {
+    const progress = {
+      completedLevels: [],
+      currentLevel: 1,
+      sessionStartTime: new Date().toISOString(),
+      lastUpdated: new Date().toISOString()
+    };
+    localStorage.setItem(ROADMAP_PROGRESS_KEY, JSON.stringify(progress));
+    console.log("Fresh roadmap session initialized");
+  }
+
+  function getProgress() {
+    try {
+      const saved = localStorage.getItem(ROADMAP_PROGRESS_KEY);
+      return saved ? JSON.parse(saved) : { completedLevels: [], currentLevel: 1 };
+    } catch(e) { 
+      return { completedLevels: [], currentLevel: 1 };
+    }
+  }
+
+  function saveProgress(levelNum) {
+    const progress = getProgress();
+    if (!progress.completedLevels.includes(levelNum)) {
+      progress.completedLevels.push(levelNum);
+      progress.currentLevel = Math.max(...progress.completedLevels) + 1;
+    }
+    progress.lastUpdated = new Date().toISOString();
+    localStorage.setItem(ROADMAP_PROGRESS_KEY, JSON.stringify(progress));
+    console.log(`Level ${levelNum} completed! Progress saved.`);
+    updateUI();
+  }
+
+  // ============ INITIAL SETUP ============
+  // Call on page load to reset if needed
+  initializeProgress();
+
+  // Background Bubbles
+  function createBubbles() {
+    const container = document.getElementById('bubble-container');
+    const bubbleCount = 15;
+    for (let i = 0; i < bubbleCount; i++) {
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      const size = Math.random() * 60 + 20 + 'px';
+      bubble.style.width = size;
+      bubble.style.height = size;
+      bubble.style.left = Math.random() * 100 + 'vw';
+      bubble.style.animationDelay = Math.random() * 10 + 's';
+      bubble.style.animationDuration = Math.random() * 10 + 10 + 's';
+      container.appendChild(bubble);
+    }
+  }
+
+  // Get progress from storage
+  const getTestResults = () => {
+    try {
+      const saved = localStorage.getItem('testResults');
+      return saved ? JSON.parse(saved) : {};
+    } catch(e) { return {}; }
+  };
+
+  // Determine current stage based on finished tests
+  function calculateCurrentStage() {
+    const data = getTestResults();
+    // Logic: if test4 is done, user is at stage 5 (results). 
+    // If nothing is done, user is at stage 1.
+    if (data.test4) return 5;
+    if (data.test3) return 4;
+    if (data.test2) return 3;
+    if (data.test1) return 2;
+    return 1;
+  }
 
   function updateUI() {
+    currentStage = calculateCurrentStage();
     const btn = document.getElementById("actionBtn");
-    const title = document.getElementById("title");
+    const titleText = document.getElementById("title");
+    
+    // Ensure we always have the correct current stage
+    currentStage = calculateCurrentStage();
 
     for (let i = 1; i <= 5; i++) {
       const node = document.getElementById(`node-${i}`);
       const ptr = document.getElementById(`ptr-${i}`);
+      const lock = node.querySelector('.lock-icon');
       
+      // Clear all classes first
       node.classList.remove('active', 'completed', 'locked');
-      ptr.style.display = 'none';
+      if(ptr) ptr.style.display = 'none';
 
+      // Level logic: 
+      // - Levels before currentStage = completed (green)
+      // - Level equal to currentStage = active (pink, with pointer)
+      // - Levels after currentStage = locked (gray)
+      
       if (i < currentStage) {
+        // Previous levels - completed
         node.classList.add('completed');
+        if(lock) lock.style.display = 'none';
       } else if (i === currentStage) {
+        // Current level - active
         node.classList.add('active');
-        ptr.style.display = 'block';
+        if(ptr) ptr.style.display = 'block';
+        if(lock) lock.style.display = 'none';
       } else {
+        // Future levels - locked
         node.classList.add('locked');
+        if(lock) lock.style.display = 'flex';
       }
     }
 
-    if (currentStage === 5) {
-      title.textContent = "Journey Complete! 🎉";
-      btn.textContent = "View Your Flower";
+    // Always show Play Level X
+    titleText.textContent = "Adventure Map ✨";
+    btn.textContent = "Play Level " + currentStage;
+  }
+
+  function handleNodeClick(stage) {
+    if (stage <= currentStage) {
+      navigateTo(stage);
     } else {
-      btn.textContent = "Play Level " + currentStage;
+      // Provide visual feedback for locked level
+      const node = document.getElementById(`node-${stage}`);
+      node.classList.add('shake');
+      setTimeout(() => node.classList.remove('shake'), 400);
+      console.log(`Level ${stage} is locked! Complete previous levels first.`);
     }
   }
 
@@ -271,8 +434,6 @@
   }
 
   function navigateTo(stage) {
-    if (stage > currentStage) return; // Prevent skipping
-    
     const routes = {
       1: "test1.html",
       2: "test2.html",
@@ -280,14 +441,21 @@
       4: "test4.html",
       5: "results.html"
     };
+    
+    // Safety check: Don't allow navigation to locked routes
+    if (stage > currentStage) return;
 
     if (routes[stage]) {
+      console.log("Navigating to: " + routes[stage]);
       window.location.assign(routes[stage]);
     }
   }
 
-  // Initialize UI
-  updateUI();
+  // Initialize
+  window.onload = () => {
+    createBubbles();
+    updateUI();
+  };
 </script>
 
 </body>
