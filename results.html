@@ -37,6 +37,8 @@
         .logout-btn:hover { background: #777; }
         .flower-btn { background: linear-gradient(135deg, #f472b6 0%, #db2777 100%); width: 100%; margin-top: 20px; }
         .flower-btn:hover { background: linear-gradient(135deg, #ec407a 0%, #c2185b 100%); }
+        .reasoning-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 100%; margin-top: 10px; }
+        .reasoning-btn:hover { background: linear-gradient(135deg, #764ba2 0%, #667eea 100%); }
         .timestamp { color: #999; font-size: 0.9em; margin-top: 10px; }
         .no-results { text-align: center; padding: 40px; color: #999; }
         @media (max-width: 768px) { .login-container, .results-container { padding: 20px; } h1 { font-size: 1.5em; } .results-grid { grid-template-columns: 1fr; } }
@@ -73,6 +75,7 @@
         
         <div id="resultsContent"></div>
 
+        <button class="reasoning-btn" onclick="goToReasoning()">💡 Understanding These Results</button>
         <button class="flower-btn" onclick="goToFlowerDis()">🌸 View Growth Flower</button>
         <button class="logout-btn" onclick="logout()">🔓 Logout</button>
     </div>
@@ -128,6 +131,8 @@
 
             // Get results from localStorage
             const testResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+            
+            console.log('Test Results Keys:', Object.keys(testResults)); // Debug log
 
             if (!testResults || Object.keys(testResults).length === 0) {
                 resultsContent.innerHTML = '<div class="no-results"><p>No test results available</p></div>';
@@ -142,7 +147,7 @@
                 test1: ['Accuracy', 'Reading Speed', 'Words Read', 'Pronunciation Errors'],
                 test2: ['Logic Accuracy', 'Logic Speed', 'Questions Attempted', 'Logical Errors'],
                 test3: ['Grammar Score', 'Writing Speed', 'Word Count', 'Spelling Errors'],
-                test4: ['Speaking Accuracy', 'Speaking Speed', 'Test Completion', 'Audio Quality']
+                test4: ['Recall Accuracy', 'Response Time', 'Sequence Length', 'Error Score']
             };
 
             // Calculate overall statistics
@@ -161,28 +166,43 @@
 
                 if (values.length > 0) {
                     totalTests++;
-                    // Compute a per-test score: prefer first metric as accuracy if 0..1, otherwise normalize
-                    let primary = values[0];
-                    let testScore = 0;
-                    if (typeof primary === 'number') {
-                        if (primary >= 0 && primary <= 1) {
-                            testScore = primary * 100;
-                        } else {
-                            // If primary already scaled (e.g., 0-50), scale to percent
-                            // assume maximum possible primary is 50 (words metric); clamp defensively
-                            const maxPossible = primary <= 50 ? 50 : primary;
-                            testScore = Math.min(100, (primary / maxPossible) * 100);
+                    // Compute average score from all 4 metrics
+                    let totalScore = 0;
+                    let validValues = 0;
+                    
+                    values.forEach(val => {
+                        if (typeof val === 'number') {
+                            if (val >= 0 && val <= 1) {
+                                totalScore += val * 100;
+                            } else if (val >= 0 && val <= 10) {
+                                // Normalize 0-10 range to percentage
+                                totalScore += (val / 10) * 100;
+                            } else if (val >= 0 && val <= 15) {
+                                // Normalize 0-15 range to percentage
+                                totalScore += (val / 15) * 100;
+                            } else if (val >= 0 && val <= 50) {
+                                // Normalize 0-50 range to percentage
+                                totalScore += (val / 50) * 100;
+                            } else if (val > 50) {
+                                // Clamp large values to 100%
+                                totalScore += 100;
+                            }
+                            validValues++;
                         }
-                    }
+                    });
+                    
+                    let testScore = validValues > 0 ? totalScore / validValues : 0;
+                    testScore = Math.min(100, Math.max(0, testScore)); // Clamp to 0-100
+                    
                     testScores.push(parseFloat(testScore.toFixed(1)));
                     overallScore += parseFloat(testScore);
 
                     html += `
                         <div class="test-card">
                             <h3>${displayType} Test</h3>
-                            <div class="metric-row">
-                                <span class="metric-label">${labels[0]}</span>
-                                <span class="metric-value">${formatMetricValue(values[0])}</span>
+                            <div class="metric-row" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; margin: -20px -20px 15px -20px; padding: 15px 20px; border-radius: 8px 8px 0 0;">
+                                <span class="metric-label" style="color: white; font-weight: 700;">Overall Score</span>
+                                <span class="metric-value" style="background: rgba(255,255,255,0.25); font-size: 1.1em;">${testScore.toFixed(1)}%</span>
                             </div>
                             <div class="metric-row">
                                 <span class="metric-label">${labels[1]}</span>
@@ -196,8 +216,32 @@
                                 <span class="metric-label">${labels[3]}</span>
                                 <span class="metric-value">${formatMetricValue(values[3])}</span>
                             </div>
-                            <div class="timestamp">${safeDateString(test.timestamp)}</div>
                     `;
+
+                    // Add petal analysis if available
+                    if (test.petal) {
+                        html += `<hr style="margin: 15px 0; border: none; border-top: 1px solid #ddd;">`;
+                        html += `<div style="margin-top: 15px; font-weight: 600; color: #667eea;">🌸 Petal Analysis</div>`;
+                        
+                        if (test.petal.reading_score !== undefined) {
+                            const readPct = ((1 - test.petal.reading_score) * 100).toFixed(1);
+                            html += `<div class="metric-row"><span>Dyslexia Risk</span><span class="metric-value">${readPct}%</span></div>`;
+                        }
+                        if (test.petal.logic_score !== undefined) {
+                            const logicPct = ((1 - test.petal.logic_score) * 100).toFixed(1);
+                            html += `<div class="metric-row"><span>Dyscalculia Risk</span><span class="metric-value">${logicPct}%</span></div>`;
+                        }
+                        if (test.petal.writing_score !== undefined) {
+                            const writePct = ((1 - test.petal.writing_score) * 100).toFixed(1);
+                            html += `<div class="metric-row"><span>Dysgraphia Risk</span><span class="metric-value">${writePct}%</span></div>`;
+                        }
+                        if (test.petal.memory_score !== undefined) {
+                            const memPct = ((1 - test.petal.memory_score) * 100).toFixed(1);
+                            html += `<div class="metric-row"><span>ADHD Risk</span><span class="metric-value">${memPct}%</span></div>`;
+                        }
+                    }
+
+                    html += `<div class="timestamp">${safeDateString(test.timestamp)}</div>`;
 
                     // Show optional extra fields, e.g., longestSequence
                     if (test.longestSequence !== undefined) {
@@ -254,6 +298,10 @@
             const testResults = JSON.parse(localStorage.getItem('testResults') || '{}');
             localStorage.setItem('flowerData', JSON.stringify(testResults));
             window.location.href = 'flower_dis.html';
+        }
+
+        function goToReasoning() {
+            window.location.href = 'reasoning.html';
         }
 
         // Check if already logged in

@@ -359,13 +359,31 @@ function submitToAPI() {
   let totalTime = 0;
   results.forEach(r => totalTime += r.userTime);
 
+  // Calculate test metrics
+  let correctCount = 0;
+  let errorCount = 0;
+  results.forEach(r => {
+    if (r.isCorrect) correctCount++;
+    else errorCount++;
+  });
+
+  // Normalize values to expected ranges
+  const recall_accuracy = results.length > 0 ? correctCount / results.length : 0; // 0-1 range
+  const response_time = Math.min(totalTime / 1000 / 12, 1) * 12; // Normalize to 0-12 range
+  const sequence_length = Math.min(longestSequence / 15, 1) * 15; // Normalize to 0-15 range
+  const error_count = Math.min(errorCount / 15, 1) * 15; // Normalize to 0-15 range
+
   const payload = {
     user_id: "user_" + Date.now(),
-    test_id: "speaking_test_1",
-    expected_text: results.map(r => r.correctAnswer).join(" "),
-    speaking_time_ms: totalTime,
-    max_speaking_time_ms: totalTime + 5000,
-    longest_sequence_without_mistake: longestSequence
+    test_id: "memory_test_1",
+    recall_accuracy: recall_accuracy,
+    response_time: response_time,
+    sequence_length: sequence_length,
+    error_count: error_count,
+    longest_sequence_without_mistake: longestSequence,
+    total_time_ms: totalTime,
+    correct_answers: correctCount,
+    total_questions: results.length
   };
 
   fetch(API_URL, {
@@ -383,6 +401,26 @@ function submitToAPI() {
       timestamp: new Date().toISOString()
     };
     localStorage.setItem('testResults', JSON.stringify(allResults));
+    
+    // Call petal prediction endpoint
+    return fetch("http://localhost:5000/predict-memory", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ array: data.array || [0, 0, 0, 0] })
+    });
+  })
+  .then(response => response.json())
+  .then(petalData => {
+    console.log("Petal Response:", petalData);
+    // Store petal analysis results
+    let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+    allResults.test4.petal = petalData;
+    localStorage.setItem('testResults', JSON.stringify(allResults));
+    
+    // Store flower data
+    let flowerData = JSON.parse(localStorage.getItem('flowerData') || '{}');
+    flowerData.memory = petalData;
+    localStorage.setItem('flowerData', JSON.stringify(flowerData));
     
     // Save progress to roadmap
     const progress = JSON.parse(localStorage.getItem('roadmapProgress') || '{}');

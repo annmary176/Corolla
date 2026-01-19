@@ -288,6 +288,26 @@ function sendToAPI() {
     };
     localStorage.setItem('testResults', JSON.stringify(allResults));
     
+    // Call petal prediction endpoint
+    return fetch("http://localhost:5000/predict-reading", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ array: data.array || [0, 0, 0, 0] })
+    });
+  })
+  .then(response => response.json())
+  .then(petalData => {
+    console.log("Petal Response:", petalData);
+    // Store petal analysis results
+    let allResults = JSON.parse(localStorage.getItem('testResults') || '{}');
+    allResults.test1.petal = petalData;
+    localStorage.setItem('testResults', JSON.stringify(allResults));
+    
+    // Store flower data
+    let flowerData = JSON.parse(localStorage.getItem('flowerData') || '{}');
+    flowerData.reading = petalData;
+    localStorage.setItem('flowerData', JSON.stringify(flowerData));
+    
     // Save progress to roadmap
     const progress = JSON.parse(localStorage.getItem('roadmapProgress') || '{}');
     progress.completedLevels = progress.completedLevels || [];

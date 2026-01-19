@@ -140,8 +140,9 @@ async def analyze_test1(data: Test1Data):
     Returns: [reading_accuracy, reading_time, words_read, pronunciation_error]
     """
     
-    # 1. Reading Accuracy (0-1 float)
+    # 1. Reading Accuracy (0-1 float) - reduced significantly for realistic scoring (max 50%)
     reading_accuracy = normalize_score(data.words_read / data.total_words, 0.0, 1.0) if data.total_words > 0 else 0.0
+    reading_accuracy = reading_accuracy * 0.5  # Max 50% accuracy
     
     # 2. Reading Time (0-10 float) - normalized time score
     reading_time_score = compute_time_score(data.reading_time_ms, data.max_reading_time_ms, 10.0)
@@ -260,97 +261,59 @@ async def analyze_test3(data: Test3Data):
     }
 
 @app.post("/analyze-test4")
-async def analyze_test4(
-    data: str = Form(...),
-    audio_file: UploadFile = File(None)
-):
+async def analyze_test4(data: dict = Body(...)):
     """
-    Analyze Speaking/Audio Test using Whisper transcription
-    Returns: [speaking_accuracy, speaking_time, transcription_confidence, audio_quality]
+    Analyze Memory Test
+    Input: recall_accuracy (0-1), response_time (0-12), sequence_length (0-15), error_count (0-15)
+    Returns: [recall_accuracy, response_time_score, sequence_score, error_score]
     """
     
-    test_data = Test4Data(**json.loads(data))
-    
-    # Transcribe audio if provided
-    transcribed_text = ""
-    accuracy = 0.0
-    
-    if audio_file and WHISPER_AVAILABLE:
-        try:
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-                tmp.write(await audio_file.read())
-                tmp_path = tmp.name
-            
-            whisper_model = get_whisper()
-            if whisper_model:
-                segments, _ = whisper_model.transcribe(tmp_path)
-                transcribed_text = " ".join([s.text for s in segments])
-            
-            if transcribed_text and test_data.expected_text:
-                model_instance = get_model()
-                if model_instance:
-                    emb1 = model_instance.encode(transcribed_text, convert_to_tensor=True)
-                    emb2 = model_instance.encode(test_data.expected_text, convert_to_tensor=True)
-                    accuracy = util.cos_sim(emb1, emb2).item()
-                    accuracy = normalize_score(accuracy, 0.0, 1.0)
-            
-            os.unlink(tmp_path)
-        except Exception as e:
-            return {
-                "error": f"Failed to process audio: {str(e)}",
-                "user_id": test_data.user_id,
-                "test_id": test_data.test_id
+    try:
+        # Extract values
+        recall_accuracy = data.get("recall_accuracy", 0.5)  # 0-1 range
+        response_time = data.get("response_time", 6)  # 0-12 range (in seconds equivalent)
+        sequence_length = data.get("sequence_length", 7.5)  # 0-15 range
+        error_count = data.get("error_count", 7.5)  # 0-15 range
+        
+        # Normalize to 0-1 range for consistency
+        recall_accuracy_norm = normalize_score(recall_accuracy, 0.0, 1.0)
+        response_time_norm = normalize_score(response_time / 12, 0.0, 1.0)  # Convert to 0-1
+        sequence_score = normalize_score(sequence_length / 15, 0.0, 1.0)  # Convert to 0-1
+        error_penalty = normalize_score(error_count / 15, 0.0, 1.0)  # Convert to 0-1
+        
+        test4_results = [
+            round(recall_accuracy_norm, 2),
+            round(response_time_norm, 2),
+            round(sequence_score, 2),
+            round(1 - error_penalty, 2)  # Inverse: more errors = lower score
+        ]
+        
+        log_test_data(
+            user_id=data.get("user_id", "unknown"),
+            test_id=data.get("test_id", "memory_test_1"),
+            test_type="memory_recognition",
+            input_data=data,
+            output_array=test4_results,
+            extra_data={
+                "longest_sequence": data.get("longest_sequence_without_mistake", 0),
+                "total_time_ms": data.get("total_time_ms", 0),
+                "correct_answers": data.get("correct_answers", 0),
+                "total_questions": data.get("total_questions", 0)
             }
-    
-    speaking_accuracy = round(accuracy, 2)
-    
-    speaking_time_score = round(
-        compute_time_score(test_data.speaking_time_ms, test_data.max_speaking_time_ms, 10.0),
-        2
-    )
-    
-    transcribed_words = set(transcribed_text.lower().split())
-    expected_words = set(test_data.expected_text.lower().split())
-    if expected_words:
-        word_match_ratio = len(transcribed_words & expected_words) / len(expected_words)
-        transcription_confidence = round(normalize_score(word_match_ratio, 0.0, 1.0), 2)
-    else:
-        transcription_confidence = 0.0
-    
-    transcribed_length = len(transcribed_text.split())
-    expected_length = len(test_data.expected_text.split())
-    if expected_length > 0:
-        length_ratio = transcribed_length / expected_length
-        audio_quality = round(normalize_score(length_ratio, 0.0, 1.0), 2)
-    else:
-        audio_quality = 0.0
-    
-    test4_results = [
-        speaking_accuracy,
-        speaking_time_score,
-        transcription_confidence,
-        audio_quality
-    ]
-    log_test_data(
-        user_id=test_data.user_id,
-        test_id=test_data.test_id,
-        test_type="speaking_audio",
-        input_data=test_data.dict(),
-        output_array=test4_results,
-        extra_data={
-            "transcribed_text": transcribed_text,
-            "expected_text": test_data.expected_text
+        )
+        
+        return {
+            "user_id": data.get("user_id", "unknown"),
+            "test_id": data.get("test_id", "memory_test_1"),
+            "test_type": "memory_recognition",
+            "array": test4_results
         }
-    )
-
-    return {
-        "user_id": test_data.user_id,
-        "test_id": test_data.test_id,
-        "test_type": "speaking_audio",
-        "array": test4_results,
-        "transcribed_text": transcribed_text,
-        "expected_text": test_data.expected_text
-    }
+    except Exception as e:
+        return {
+            "error": f"Failed to analyze test4: {str(e)}",
+            "user_id": data.get("user_id", "unknown"),
+            "test_id": data.get("test_id", "memory_test_1")
+        }
 
 @app.post("/analyze-all-tests")
 async def analyze_all_tests(
